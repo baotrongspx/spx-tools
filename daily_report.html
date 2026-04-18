@@ -461,6 +461,8 @@ thead th{position:sticky;top:0;z-index:10}
       <span class="dot"></span>
       <span id="status-chip-text">Chờ dữ liệu</span>
     </div>
+    <button onclick="exportData()" style="background:#1D9E75;color:#fff;border:none;padding:6px 12px;border-radius:6px;font-size:12px;cursor:pointer;font-weight:600">💾 Export</button>
+    <label style="background:#185FA5;color:#fff;padding:6px 12px;border-radius:6px;font-size:12px;cursor:pointer;font-weight:600">📂 Import<input type="file" accept=".json" onchange="importData(event)" style="display:none"></label>
   </div>
 </header>
 
@@ -1996,6 +1998,49 @@ function togglePanel(panelId, btnId){
   const isOpen = btn.textContent.trim() === '▲';
   body.forEach(el => el.style.display = isOpen ? 'none' : '');
   btn.textContent = isOpen ? '▼' : '▲';
+}
+
+// ═══ EXPORT / IMPORT JSON ═══
+function exportData(){
+  const data = {
+    hub_csv: localStorage.getItem('hub_csv') || '',
+    hub_csv_extra: localStorage.getItem('hub_csv_extra') || '',
+    hub_csv_end: localStorage.getItem('hub_csv_end') || '',
+    hub_csv_pickup: localStorage.getItem('hub_csv_pickup') || '',
+    hub_form: localStorage.getItem('hub_form') || '',
+    hub_active_tab: localStorage.getItem('hub_active_tab') || 't1',
+    exported_at: new Date().toISOString()
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  const d = new Date();
+  a.download = `hub_data_${d.getDate().toString().padStart(2,'0')}${(d.getMonth()+1).toString().padStart(2,'0')}${d.getFullYear()}.json`;
+  a.click();
+  toast('💾 Đã export data thành công!');
+}
+
+function importData(e){
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev){
+    try{
+      const data = JSON.parse(ev.target.result);
+      if(data.hub_csv) localStorage.setItem('hub_csv', data.hub_csv);
+      if(data.hub_csv_extra) localStorage.setItem('hub_csv_extra', data.hub_csv_extra);
+      if(data.hub_csv_end) localStorage.setItem('hub_csv_end', data.hub_csv_end);
+      if(data.hub_csv_pickup) localStorage.setItem('hub_csv_pickup', data.hub_csv_pickup);
+      if(data.hub_form) localStorage.setItem('hub_form', data.hub_form);
+      if(data.hub_active_tab) localStorage.setItem('hub_active_tab', data.hub_active_tab);
+      toast('📂 Import thành công! Đang tải lại...');
+      setTimeout(() => location.reload(), 1200);
+    } catch(err){
+      toast('❌ File JSON không hợp lệ!');
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
 }
 </script>
 </body>
