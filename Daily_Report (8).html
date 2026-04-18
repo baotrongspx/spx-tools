@@ -1,0 +1,2002 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>45-DLK Krong Pak – Daily Report v10</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --spx:#EE4D2D;--spx-dark:#D84315;--spx-light:#FF7043;
+  --spx-bg:#FFF2F0;--spx-border:#FFDDD5;
+  --sidebar-w:224px;--header-h:56px;
+  --bg:#F5F5F5;--surface:#FFFFFF;
+  --border:#E8E8E8;--text:#1A1A1A;--text-muted:#616161;--text-xs:#9E9E9E;
+  --shadow:0 1px 3px rgba(0,0,0,.05),0 2px 8px rgba(0,0,0,.04);
+  --shadow-lg:0 4px 16px rgba(0,0,0,.08);
+  --radius:6px;--radius-lg:10px;
+}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);font-size:13px;min-height:100vh;display:flex;flex-direction:column}
+
+/* ══ TOPBAR ══ */
+.topbar{
+  height:var(--header-h);background:#fff;
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 20px 0 calc(var(--sidebar-w) + 20px);
+  position:fixed;top:0;left:0;right:0;z-index:200;
+  box-shadow:0 1px 4px rgba(0,0,0,.06);
+}
+.topbar-left{display:flex;align-items:center;gap:14px}
+.topbar-brand{display:flex;flex-direction:column;gap:1px}
+.topbar-title{font-size:14px;font-weight:700;color:var(--text);letter-spacing:-.1px;line-height:1.2}
+.topbar-sub{font-size:10px;color:#BDBDBD}
+.topbar-right{display:flex;align-items:center;gap:12px}
+
+/* Live clock */
+.topbar-clock{
+  display:flex;align-items:center;gap:5px;
+  font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;
+  color:var(--spx);background:var(--spx-bg);border:1px solid var(--spx-border);
+  border-radius:6px;padding:4px 10px;white-space:nowrap;
+}
+.topbar-date-chip{
+  font-size:11px;font-weight:700;color:var(--spx);
+  background:var(--spx-bg);padding:5px 12px;border-radius:6px;border:1px solid var(--spx-border);
+}
+
+/* Status chip */
+.status-chip{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:4px 10px;border-radius:4px;
+  font-size:11px;font-weight:600;border:1px solid transparent;white-space:nowrap;
+}
+.status-chip.idle{background:#F5F5F5;color:#9E9E9E;border-color:#E8E8E8}
+.status-chip.live{background:var(--spx-bg);color:var(--spx);border-color:var(--spx-border)}
+.status-chip .dot{width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0}
+.status-chip.live .dot{animation:blink 1.4s ease-in-out infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* ══ SIDEBAR ══ */
+.sidebar{
+  width:var(--sidebar-w);background:#fff;border-right:1px solid var(--border);
+  position:fixed;top:0;left:0;bottom:0;z-index:300;
+  display:flex;flex-direction:column;
+}
+.sidebar-brand{
+  height:var(--header-h);display:flex;align-items:center;gap:10px;
+  padding:0 16px;border-bottom:1px solid #F0F0F0;flex-shrink:0;
+}
+.brand-logo{
+  width:32px;height:32px;background:var(--spx);border-radius:6px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:15px;flex-shrink:0;
+}
+.brand-text{font-size:13px;font-weight:700;color:var(--text);letter-spacing:-.1px}
+.brand-sub{font-size:10px;color:#BDBDBD;margin-top:1px}
+
+.sidebar-nav{flex:1;padding:8px 0;overflow-y:auto}
+.nav-section{
+  font-size:10px;font-weight:600;color:#BDBDBD;
+  text-transform:uppercase;letter-spacing:.8px;
+  padding:12px 16px 4px;
+}
+.nav-item{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 16px;cursor:pointer;font-size:12px;font-weight:500;color:#616161;
+  transition:background .1s,color .1s;border:none;background:none;
+  width:100%;text-align:left;border-left:3px solid transparent;
+}
+.nav-item:hover{background:#FAFAFA;color:var(--text)}
+.nav-item.active{background:var(--spx-bg);color:var(--spx);border-left-color:var(--spx);font-weight:600}
+.nav-icon{font-size:15px;flex-shrink:0;width:18px;text-align:center;opacity:.8}
+.nav-item.active .nav-icon{opacity:1}
+.nav-label{flex:1;line-height:1.3}
+.nav-badge{
+  background:var(--spx);color:#fff;border-radius:3px;
+  padding:1px 6px;font-size:10px;font-weight:600;min-width:18px;text-align:center;
+}
+.nav-badge.gray{background:#E0E0E0;color:#9E9E9E}
+
+.sidebar-footer{padding:12px 16px;border-top:1px solid #F0F0F0;flex-shrink:0}
+.sidebar-footer-hub{font-size:11px;color:#9E9E9E;font-weight:500}
+.sidebar-version{
+  display:inline-block;background:var(--spx);color:#fff;
+  font-size:9px;font-weight:700;padding:1px 7px;border-radius:3px;margin-top:4px;
+}
+
+/* ══ MAIN ══ */
+.main{margin-left:var(--sidebar-w);margin-top:var(--header-h);flex:1}
+.panel{display:none;padding:20px 24px;animation:fadeIn .12s ease}
+.panel.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+/* ══ PAGE FOOTER ══ */
+.page-footer{
+  margin-left:var(--sidebar-w);background:#fff;border-top:1px solid #F0F0F0;
+  padding:10px 24px;font-size:11px;color:#BDBDBD;
+  display:flex;align-items:center;justify-content:center;
+}
+
+/* ══ CARDS ══ */
+.card{background:#fff;border-radius:var(--radius-lg);border:1px solid #EBEBEB;box-shadow:0 1px 4px rgba(0,0,0,.05);overflow:hidden;margin-bottom:14px}
+.card-hd{padding:14px 18px;border-bottom:1px solid #F5F5F5;display:flex;align-items:center;gap:12px;background:#FAFAFA}
+.card-num{background:var(--spx);color:#fff;width:24px;height:24px;border-radius:50%;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.card-title{font-size:13px;font-weight:700;color:var(--text)}
+.card-sub{font-size:11px;color:#BDBDBD;margin-top:1px}
+.card-body{padding:18px}
+
+/* ══ STAT CARDS ══ */
+.stat-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:18px}
+.stat-card{
+  background:#fff;border-radius:var(--radius);border:1px solid #EBEBEB;
+  padding:14px 16px 12px;box-shadow:0 1px 4px rgba(0,0,0,.05);
+  position:relative;overflow:hidden;cursor:default;
+  transition:box-shadow .15s,transform .15s;
+}
+.stat-card:hover{box-shadow:var(--shadow-lg);transform:translateY(-1px)}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--spx);border-radius:6px 6px 0 0}
+.stat-card.green::before{background:#43A047}
+.stat-card.amber::before{background:#FB8C00}
+.stat-card.purple::before{background:#7B1FA2}
+.stat-card.blue::before{background:#1E88E5}
+.stat-card.red::before{background:#E53935}
+.stat-card.slate::before{background:#455A64}
+.stat-icon{font-size:16px;margin-bottom:6px;opacity:.8}
+.stat-num{font-size:26px;font-weight:700;line-height:1;color:var(--spx)}
+.stat-card.green .stat-num{color:#43A047}
+.stat-card.amber .stat-num{color:#FB8C00}
+.stat-card.purple .stat-num{color:#7B1FA2}
+.stat-card.blue .stat-num{color:#1E88E5}
+.stat-card.red .stat-num{color:#E53935}
+.stat-card.slate .stat-num{color:#455A64}
+.stat-lbl{font-size:11px;color:#9E9E9E;margin-top:4px;font-weight:400;line-height:1.3}
+
+/* ══ GRAND STAT BAR ══ */
+.grand-bar{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:18px}
+.grand-group{background:#fff;border-radius:var(--radius);border:1px solid #EBEBEB;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+.grand-group-hd{padding:6px 12px;font-size:10px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:#fff;display:flex;align-items:center;gap:6px}
+.grand-group-hd.deliver{background:var(--spx)}
+.grand-group-hd.ns{background:#1B5E20}
+.grand-group-hd.pickup{background:#7B1FA2}
+.grand-group-body{display:flex;align-items:stretch;padding:0}
+.grand-kpi{flex:1;padding:8px 10px;text-align:center;border-right:1px solid #F0F0F0;min-width:0}
+.grand-kpi:last-child{border-right:none}
+.grand-kpi-num{font-size:20px;font-weight:700;line-height:1;font-family:'JetBrains Mono',monospace}
+.grand-kpi-lbl{font-size:10px;color:#9E9E9E;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.grand-kpi-num.spx{color:var(--spx)}
+.grand-kpi-num.green{color:#2E7D32}
+.grand-kpi-num.red{color:#C62828}
+.grand-kpi-num.amber{color:#FB8C00}
+.grand-kpi-num.purple{color:#7B1FA2}
+.grand-kpi-num.sr-good{color:#2E7D32}
+.grand-kpi-num.sr-bad{color:#C62828}
+.grand-sr-bar{height:3px;background:#EEE;margin:0 10px 8px;border-radius:2px}
+.grand-sr-fill{height:3px;border-radius:2px;transition:width .4s}
+@media(max-width:700px){.grand-bar{grid-template-columns:1fr}.grand-kpi-num{font-size:17px}}
+@media(prefers-color-scheme:dark){.grand-group{background:#1E1E1E;border-color:#333}.grand-kpi{border-right-color:#2A2A2A}}
+
+/* ══ FORM ══ */
+.fg{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-bottom:14px}
+.fi{display:flex;flex-direction:column;gap:3px}
+.fi label{font-size:10px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.3px}
+.fi input,.fi select{
+  padding:7px 10px;border:1.5px solid #E8E8E8;border-radius:6px;
+  font-size:12px;font-family:'Inter',sans-serif;outline:none;background:#fff;
+  transition:border .15s;color:var(--text);
+}
+.fi input:focus,.fi select:focus{border-color:var(--spx)}
+
+/* ══ TEXTAREA ══ */
+textarea{
+  width:100%;height:90px;border:1.5px solid #E8E8E8;border-radius:6px;
+  padding:8px 10px;font-size:11px;font-family:'JetBrains Mono',monospace;
+  resize:vertical;outline:none;background:#FAFAFA;transition:border .15s;color:var(--text);
+}
+textarea:focus{border-color:var(--spx);box-shadow:0 0 0 3px rgba(238,77,45,.08);background:#fff}
+.lbl{font-size:10px;font-weight:700;margin-bottom:5px;color:#616161}
+
+/* ══ WEATHER PILLS ══ */
+.wpill{
+  padding:6px 12px;border-radius:16px;border:1.5px solid #E8E8E8;
+  cursor:pointer;font-size:11px;font-weight:600;color:#666;background:#fff;
+  transition:all .15s;user-select:none;
+}
+.wpill:hover{border-color:var(--spx);color:var(--spx)}
+.wpill.sel{background:var(--spx);color:#fff;border-color:var(--spx)}
+
+/* ══ BUTTONS ══ */
+.btn{padding:8px 20px;border:none;border-radius:6px;cursor:pointer;font-weight:700;font-size:12px;font-family:'Inter',sans-serif;transition:all .15s}
+.btn-spx{background:var(--spx);color:#fff}.btn-spx:hover{background:var(--spx-dark);transform:translateY(-1px)}
+.btn-green{background:#2E7D32;color:#fff}.btn-green:hover{background:#1B5E20;transform:translateY(-1px)}
+.btn-purple{background:#7B1FA2;color:#fff}.btn-purple:hover{background:#6A1B9A;transform:translateY(-1px)}
+.btn-outline{background:#fff;color:#555;border:1.5px solid #E0E0E0}.btn-outline:hover{background:#F5F5F5}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:12px}
+.btn:disabled{opacity:.4;cursor:not-allowed;pointer-events:none}
+
+/* ══ STATUS BAR ══ */
+#statusBar{padding:9px 12px;border-radius:6px;font-size:12px;display:none;margin-top:10px}
+.s-ok{background:var(--spx-bg);color:var(--spx-dark);border:1px solid var(--spx-border);border-left:3px solid var(--spx)}
+.s-err{background:#FFF3F3;color:#C62828;border:1px solid #FFCDD2;border-left:3px solid #E53935}
+
+/* ══ TABLE BASE ══ */
+table{width:100%;border-collapse:collapse;font-size:11px;font-family:'Inter',sans-serif}
+th{padding:7px 10px;font-size:10px;font-weight:700;white-space:nowrap;color:#fff;text-align:center}
+td{padding:6px 10px;border-bottom:1px solid #F5F5F5;font-size:11px;text-align:center;color:var(--text)}
+td:first-child{text-align:left;font-weight:600}
+tr:nth-child(even) td{background:#FAFAFA}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--spx-bg)!important;transition:background .1s}
+.table-wrap{overflow-x:auto;position:relative}
+thead th{position:sticky;top:0;z-index:10}
+
+/* ══ BEGIN TABLE ══ */
+.begin-box{background:#fff;border:1px solid #EBEBEB;border-radius:var(--radius-lg);overflow:hidden}
+.begin-box-hd{padding:10px 16px;display:flex;align-items:center;justify-content:space-between;background:#FAFAFA;border-bottom:1px solid #F0F0F0}
+.begin-box-title{font-size:13px;font-weight:800;color:var(--spx)}
+
+/* BEGIN INFO PANEL */
+.begin-info{width:244px;flex-shrink:0;background:#fff;border:1px solid #EBEBEB;border-radius:var(--radius-lg);overflow:hidden}
+.binfo-hd{background:var(--spx);color:#fff;padding:10px 14px;font-size:11px;font-weight:800;display:flex;justify-content:space-between;align-items:center}
+.binfo-tbl{width:100%;border-collapse:collapse}
+.binfo-tbl td{padding:6px 12px;border-bottom:1px solid #F5F5F5;font-size:10px;line-height:1.4}
+.binfo-tbl td:first-child{color:#888;width:148px}
+.binfo-tbl td:last-child{font-weight:700;color:var(--text);text-align:right}
+.binfo-tbl tr:hover td{background:#FAFAFA}
+.kpi-hd{background:#1E3A8A;color:#fff;padding:7px 12px;font-size:10px;font-weight:800;text-align:center}
+.kpi-tbl{width:100%;border-collapse:collapse}
+.kpi-tbl th{background:#EFF6FF;color:#1E40AF;padding:5px 10px;font-size:9px;font-weight:700;border-bottom:1px solid #DBEAFE;text-align:center;color:#1E40AF!important}
+.kpi-tbl td{padding:6px 10px;border-bottom:1px solid #F5F5F5;font-size:11px;text-align:center;font-weight:700}
+.kpi-tbl tr:last-child td{border:none}
+.binfo-foot{padding:10px;border-top:1px solid #F0F0F0;background:#FAFAFA}
+.binfo-foot .btn{width:100%;font-size:11px;padding:7px}
+.kg{color:#2E7D32}.kb{color:#C62828}
+
+.t2-layout{display:flex;gap:14px;align-items:flex-start}
+.t3-layout{display:flex;gap:14px;align-items:flex-start}
+.t3-left{flex:1;min-width:0;display:flex;flex-direction:column;gap:12px}
+.t3-right{width:224px;flex-shrink:0;background:#fff;border:1px solid #EBEBEB;border-radius:var(--radius-lg);overflow:hidden}
+
+/* END DAY TABLES */
+.ed-box{background:#fff;border:1px solid #EBEBEB;border-radius:var(--radius-lg);overflow:hidden}
+.ed-box-hd{padding:10px 16px;font-size:12px;font-weight:800;color:var(--text);border-bottom:1px solid #F0F0F0;display:flex;justify-content:space-between;align-items:center;background:#FAFAFA}
+.target-badge{background:#D97706;color:#fff;padding:2px 8px;border-radius:3px;font-size:10px;font-weight:700}
+
+/* END REPORT PANEL */
+.er-hd{background:var(--spx);color:#fff;padding:12px 14px}
+.er-hd-title{font-size:12px;font-weight:800;letter-spacing:.3px}
+.er-hd-sub{font-size:10px;opacity:.8;margin-top:2px}
+.er-tbl{width:100%;border-collapse:collapse}
+.er-tbl td{padding:7px 12px;border-bottom:1px solid #F5F5F5;font-size:10px;vertical-align:middle}
+.er-tbl td:first-child{color:#777;text-align:left}
+.er-tbl td:last-child{font-weight:700;color:var(--text);text-align:right;white-space:nowrap;font-family:'JetBrains Mono',monospace;font-size:11px}
+.er-tbl tr:last-child td{border:none}
+.er-foot{padding:10px;border-top:1px solid #F0F0F0;background:#FAFAFA}
+
+/* BADGES */
+.bon{background:#E8F5E9;color:#2E7D32;padding:1px 8px;border-radius:3px;font-size:10px;font-weight:700;display:inline-block}
+.boff{background:#FFEBEE;color:#C62828;padding:1px 8px;border-radius:3px;font-size:10px;font-weight:700;display:inline-block}
+.good{background:#E8F5E9;color:#2E7D32;padding:1px 7px;border-radius:3px;font-size:10px;font-weight:700;display:inline-block}
+.fail-badge{background:#FFEBEE;color:#C62828;padding:1px 7px;border-radius:3px;font-size:10px;font-weight:700;display:inline-block}
+.off-badge{background:#F5F5F5;color:#9E9E9E;padding:1px 7px;border-radius:3px;font-size:10px;font-weight:700;display:inline-block}
+
+/* CHART */
+.chart-box{background:#fff;border:1px solid #EBEBEB;border-radius:var(--radius-lg);padding:16px 18px;margin-top:14px}
+.chart-title{font-size:11px;font-weight:700;color:#616161;text-align:center;margin-bottom:12px;text-transform:uppercase;letter-spacing:.5px}
+
+/* QUICK SUMMARY BOX */
+.summary-box{
+  background:linear-gradient(135deg,var(--spx) 0%,#D84315 100%);
+  border-radius:var(--radius-lg);padding:14px 18px;color:#fff;margin-bottom:14px;
+  display:none;position:relative;overflow:hidden;
+}
+.summary-box::after{
+  content:'📊';position:absolute;right:16px;bottom:-8px;
+  font-size:52px;opacity:.12;line-height:1;
+}
+.summary-box-title{font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;opacity:.8;margin-bottom:6px}
+.summary-text{font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.7;word-break:break-word}
+.summary-copy-btn{
+  margin-top:10px;background:rgba(255,255,255,.2);color:#fff;border:1.5px solid rgba(255,255,255,.4);
+  border-radius:6px;padding:5px 14px;font-size:11px;font-weight:700;cursor:pointer;
+  font-family:'Inter',sans-serif;transition:background .15s;
+}
+.summary-copy-btn:hover{background:rgba(255,255,255,.35)}
+
+/* TOAST */
+.toast{
+  position:fixed;bottom:20px;right:20px;background:#1A1A1A;color:#fff;
+  padding:10px 16px;border-radius:8px;font-size:12px;font-weight:600;
+  display:none;align-items:center;gap:8px;z-index:999;
+  box-shadow:0 4px 16px rgba(0,0,0,.25);border-left:3px solid var(--spx);
+}
+.toast.show{display:flex;animation:slideUp .2s ease}
+@keyframes slideUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* EMPTY STATE */
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:36px 20px;color:#BDBDBD;gap:8px}
+.empty-state-icon{font-size:28px}
+.empty-state-title{font-size:13px;font-weight:600}
+.empty-state-hint{font-size:11px;text-align:center;line-height:1.5}
+
+/* PROGRESS BAR */
+.pbar-wrap{background:#F5F5F5;border-radius:4px;height:6px;overflow:hidden;margin-top:4px}
+.pbar{height:100%;border-radius:4px;transition:width .6s ease;background:var(--spx)}
+.pbar.good-bar{background:#43A047}
+.pbar.fail-bar{background:#E53935}
+
+/* BADGE FLASH */
+@keyframes badgeFlash{0%{transform:scale(1)}40%{transform:scale(1.3)}100%{transform:scale(1)}}
+.badge-flash{animation:badgeFlash .25s ease}
+
+/* ── DARK MODE ── */
+@media(prefers-color-scheme:dark){
+  :root{--bg:#1A1A1A;--surface:#222;--border:#333;--text:#E8E8E8;--text-muted:#888;--spx-bg:#2a1a18;--spx-border:#5a2a20}
+  body{background:#1A1A1A}
+  .topbar,.sidebar{background:#222;border-color:#333}
+  .card,.begin-box,.begin-info,.ed-box,.t3-right,.chart-box{background:#222;border-color:#333}
+  .card-hd,.begin-box-hd,.ed-box-hd,.binfo-foot,.er-foot{background:#1E1E1E;border-color:#333}
+  .stat-card{background:#222;border-color:#333}
+  textarea{background:#2a2a2a;border-color:#444;color:#e8e8e8}
+  textarea:focus{background:#2a2a2a}
+  .fi input,.fi select{background:#2a2a2a;border-color:#444;color:#e8e8e8}
+  td{border-bottom-color:#2E2E2E;color:#ddd}
+  td:first-child{color:#fff}
+  tr:nth-child(even) td{background:#262626}
+  tr:hover td{background:#2E2E2E!important}
+  .binfo-tbl td{border-bottom-color:#2E2E2E;color:#ddd}
+  .binfo-tbl td:first-child{color:#888}
+  .binfo-tbl td:last-child{color:#fff}
+  .er-tbl td{border-bottom-color:#2E2E2E;color:#ddd}
+  .er-tbl td:first-child{color:#888}
+  .er-tbl td:last-child{color:#fff}
+  .kpi-tbl td{border-bottom-color:#2E2E2E;color:#ccc}
+  .wpill{background:#2a2a2a;border-color:#444;color:#aaa}
+  .btn-outline{background:#2a2a2a;color:#aaa;border-color:#444}
+  .sidebar-brand,.sidebar-footer,.nav-section{border-color:#333}
+  .topbar-clock{background:#2a1a18;border-color:#5a2a20}
+  .topbar-date-chip{background:#2a1a18;border-color:#5a2a20}
+  .summary-box{opacity:.95}
+  .bon{background:#1B4332;color:#6EE7B7}
+  .boff{background:#7F1D1D;color:#FCA5A5}
+  .good{background:#1B4332;color:#6EE7B7}
+  .fail-badge{background:#7F1D1D;color:#FCA5A5}
+  .off-badge{background:#1E293B;color:#94A3B8}
+  .s-ok{background:#1B4332;color:#6EE7B7;border-color:#166534}
+  .s-err{background:#7F1D1D;color:#FCA5A5;border-color:#991B1B}
+  .pbar-wrap{background:#333}
+  .page-footer{background:#222;border-color:#333;color:#555}
+  .kpi-tbl th{background:#1e2d5a!important;color:#93c5fd!important;border-color:#2a3f7a!important}
+  .main{background:#1A1A1A}
+  .panel{background:#1A1A1A}
+  #ed-placeholder>div{background:#222;border-color:#333}
+  #ed-placeholder>div div{color:#888}
+  #tbl-ph{background:#222!important;border-color:#333!important}
+  #tbl-ph div{color:#888!important}
+}
+
+/* ── CAPTURE DARK (forced cho html2canvas, không phụ thuộc media query) ── */
+.capture-dark{--bg:#1A1A1A;--surface:#222;--border:#333;--text:#E8E8E8;--text-muted:#888;--spx-bg:#2a1a18;--spx-border:#5a2a20;background:#1A1A1A!important}
+.capture-dark .topbar,.capture-dark .sidebar{background:#222!important;border-color:#333!important}
+.capture-dark .card,.capture-dark .begin-box,.capture-dark .begin-info,.capture-dark .ed-box,.capture-dark .t3-right,.capture-dark .chart-box{background:#222!important;border-color:#333!important}
+.capture-dark .card-hd,.capture-dark .begin-box-hd,.capture-dark .ed-box-hd,.capture-dark .binfo-foot,.capture-dark .er-foot{background:#1E1E1E!important;border-color:#333!important}
+.capture-dark .stat-card{background:#222!important;border-color:#333!important}
+.capture-dark .grand-group{background:#1E1E1E!important;border-color:#333!important}
+.capture-dark .grand-kpi{border-right-color:#2A2A2A!important}
+.capture-dark .wpill{background:#2a2a2a!important;border-color:#444!important;color:#aaa!important}
+.capture-dark .btn-outline{background:#2a2a2a!important;color:#aaa!important;border-color:#444!important}
+.capture-dark .bon{background:#1B4332!important;color:#6EE7B7!important}
+.capture-dark .boff{background:#7F1D1D!important;color:#FCA5A5!important}
+.capture-dark .good{background:#1B4332!important;color:#6EE7B7!important}
+.capture-dark .fail-badge{background:#7F1D1D!important;color:#FCA5A5!important}
+.capture-dark .off-badge{background:#1E293B!important;color:#94A3B8!important}
+.capture-dark .pbar-wrap{background:#333!important}
+.capture-dark .main{background:#1A1A1A!important}
+.capture-dark .panel{background:#1A1A1A!important}
+.capture-dark .kpi-tbl th{background:#1e2d5a!important;color:#93c5fd!important;border-color:#2a3f7a!important}
+.capture-dark #tbl-ph{background:#222!important;border-color:#333!important}
+.capture-dark #tbl-ph div{color:#888!important}
+.capture-dark .ns-cell{background:#1B4332!important;color:#6EE7B7!important}
+.capture-dark .page-footer{background:#222!important;border-color:#333!important;color:#555!important}
+</style>
+</head>
+<body>
+
+<!-- ══ SIDEBAR ══ -->
+<nav class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-logo">📦</div>
+    <div>
+      <div class="brand-text">SPX Express</div>
+      <div class="brand-sub">Hub 45-DLK Krong Pak</div>
+    </div>
+  </div>
+  <div class="sidebar-nav">
+    <div class="nav-section">Báo cáo</div>
+    <button class="nav-item active" id="nav-t1" onclick="switchTab('t1')">
+      <span class="nav-icon">📋</span>
+      <span class="nav-label">Nhập liệu</span>
+    </button>
+    <button class="nav-item" id="nav-t2" onclick="switchTab('t2')">
+      <span class="nav-icon">📊</span>
+      <span class="nav-label">Báo cáo Begin</span>
+      <span class="nav-badge gray" id="badge-t2">—</span>
+    </button>
+    <button class="nav-item" id="nav-t3" onclick="switchTab('t3')">
+      <span class="nav-icon">🏆</span>
+      <span class="nav-label">Năng suất End Day</span>
+      <span class="nav-badge gray" id="badge-t3">—</span>
+    </button>
+    <div class="nav-section">Công cụ</div>
+    <button class="nav-item" id="nav-t4" onclick="switchTab('t4')">
+      <span class="nav-icon">⚡</span>
+      <span class="nav-label">Quick Summary</span>
+    </button>
+  </div>
+  <div class="sidebar-footer">
+    <div class="sidebar-footer-hub">Hub 45-DLK · Krong Pak</div>
+    <div class="sidebar-version">v10.0</div>
+  </div>
+</nav>
+
+<!-- ══ TOPBAR ══ -->
+<header class="topbar">
+  <div class="topbar-left">
+    <div class="topbar-brand">
+      <div class="topbar-title">Daily Report Tool <span style="background:var(--spx);color:#fff;font-size:9px;font-weight:700;padding:1px 6px;border-radius:3px;vertical-align:middle;margin-left:4px">v10</span></div>
+      <div class="topbar-sub" id="topbar-breadcrumb">Hub 45-DLK Krong Pak</div>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <div class="topbar-clock">
+      <span id="clock-time">--:--:--</span>
+      <span style="color:#FFBDAD;font-size:10px">|</span>
+      <span id="clock-date" style="font-size:10px;color:#FF8A65">--/--/----</span>
+    </div>
+    <div class="topbar-date-chip" id="topbar-date">—</div>
+    <div class="status-chip idle" id="status-chip">
+      <span class="dot"></span>
+      <span id="status-chip-text">Chờ dữ liệu</span>
+    </div>
+  </div>
+</header>
+
+<!-- ══ MAIN ══ -->
+<div class="main">
+
+<!-- ══ TAB 1: NHẬP LIỆU ══ -->
+<div class="panel active" id="t1">
+
+  <!-- STAT CARDS -->
+  <div class="stat-row" id="stat-row-t1" style="display:none">
+    <div class="stat-card" data-icon="📦">
+      <div class="stat-icon">📦</div>
+      <div class="stat-num" id="s-total">0</div>
+      <div class="stat-lbl">Tổng đơn assigned</div>
+    </div>
+    <div class="stat-card green">
+      <div class="stat-icon">✅</div>
+      <div class="stat-num" id="s-merged">0</div>
+      <div class="stat-lbl">Đơn giao hôm nay</div>
+    </div>
+    <div class="stat-card blue">
+      <div class="stat-icon">🏷️</div>
+      <div class="stat-num" id="s-ns">0</div>
+      <div class="stat-lbl">Inbound NS</div>
+    </div>
+    <div class="stat-card amber">
+      <div class="stat-icon">👤</div>
+      <div class="stat-num" id="s-rider">0</div>
+      <div class="stat-lbl">Rider đang làm</div>
+    </div>
+    <div class="stat-card purple">
+      <div class="stat-icon">📈</div>
+      <div class="stat-num" id="s-prod">0</div>
+      <div class="stat-lbl">Đơn/Rider TB</div>
+    </div>
+  </div>
+
+  <!-- BƯỚC 1: DATA -->
+  <div class="card">
+    <div class="card-hd">
+      <div class="card-num">1</div>
+      <div>
+        <div class="card-title">Paste dữ liệu từ SPX</div>
+        <div class="card-sub">Export từ Order Tracking → Ctrl+A → Ctrl+C → paste vào đây</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div>
+          <div class="lbl" style="color:var(--spx)">🌅 DATA ĐẦU NGÀY</div>
+          <textarea id="csvInput" placeholder="Paste data đầu ngày..." oninput="autoSave()"></textarea>
+        </div>
+        <div>
+          <div class="lbl" style="color:#888">➕ BỔ SUNG ĐẦU NGÀY <span style="font-weight:400;color:#BDBDBD">(không bắt buộc)</span></div>
+          <textarea id="csvExtra" placeholder="Paste data bổ sung..." oninput="autoSave()" style="border-color:#BFDBFE;background:#F0F9FF"></textarea>
+        </div>
+        <div>
+          <div class="lbl" style="color:#2E7D32">🌇 DATA CUỐI NGÀY</div>
+          <textarea id="csvEnd" placeholder="Paste data cuối ngày..." oninput="autoSave()" style="border-color:#A7F3D0;background:#F0FDF4"></textarea>
+        </div>
+        <div>
+          <div class="lbl" style="color:#7B1FA2">🚚 NĂNG SUẤT LẤY <span style="font-weight:400;color:#BDBDBD">(performance_report)</span></div>
+          <textarea id="csvPickup" placeholder="Paste performance report..." oninput="autoSave()" style="border-color:#DDD6FE;background:#FAF5FF"></textarea>
+        </div>
+      </div>
+      <input type="hidden" id="report-date">
+      <input type="hidden" id="rider">
+      <input type="hidden" id="assigned" value="0">
+      <input type="hidden" id="bd3" value="0">
+      <input type="hidden" id="bgt5" value="0">
+      <input type="hidden" id="don-hen" value="0">
+      <input type="hidden" id="don-xl" value="0">
+      <input type="hidden" id="cod-d1" value="0">
+      <input type="hidden" id="lm-ontime" value="0">
+      <input type="hidden" id="weather-val">
+    </div>
+  </div>
+
+  <!-- BƯỚC 2: THÔNG TIN BỔ SUNG -->
+  <div class="card">
+    <div class="card-hd">
+      <div class="card-num">2</div>
+      <div>
+        <div class="card-title">Thông tin báo cáo</div>
+        <div class="card-sub">Điền thêm để báo cáo đầy đủ hơn</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="fg">
+        <div class="fi">
+          <label>📅 Ngày báo cáo</label>
+          <input type="date" id="report-date-input" oninput="autoSave()">
+        </div>
+        <div class="fi">
+          <label>👥 FTE</label>
+          <select id="fte" onchange="autoSave()">
+            <option value="1/2">1/2</option>
+            <option value="2/2" selected>2/2</option>
+          </select>
+        </div>
+        <div class="fi">
+          <label>📦 Backlog D3–D5</label>
+          <input type="number" id="bd3-input" placeholder="0" min="0" oninput="syncHidden('bd3-input','bd3');autoSave()">
+        </div>
+        <div class="fi">
+          <label>📦 Backlog &gt;D5</label>
+          <input type="number" id="bgt5-input" placeholder="0" min="0" oninput="syncHidden('bgt5-input','bgt5');autoSave()">
+        </div>
+        <div class="fi">
+          <label>📅 Đơn hẹn giao</label>
+          <input type="number" id="don-hen-input" placeholder="0" min="0" oninput="syncHidden('don-hen-input','don-hen');autoSave()">
+        </div>
+        <div class="fi">
+          <label>📋 Đơn chưa xử lý</label>
+          <input type="number" id="don-xl-input" placeholder="0" min="0" oninput="syncHidden('don-xl-input','don-xl');autoSave()">
+        </div>
+        <div class="fi">
+          <label>💰 Pending COD D-1</label>
+          <input type="number" id="cod-d1-input" placeholder="0" min="0" oninput="syncHidden('cod-d1-input','cod-d1');autoSave()">
+        </div>
+        <div class="fi">
+          <label>⏱️ LM Ontime (%)</label>
+          <input type="number" id="lm-ontime-input" placeholder="0.00" step="0.01" min="0" max="100" oninput="syncHidden('lm-ontime-input','lm-ontime');autoSave()">
+        </div>
+      </div>
+      <!-- Thời tiết -->
+      <div class="lbl" style="margin-bottom:8px">🌤️ Thời tiết hôm nay</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px">
+        <div class="wpill" data-full="☀️ Nắng nhẹ, trời quang đãng" onclick="selW(this)">☀️ Nắng nhẹ</div>
+        <div class="wpill" data-full="🌞 Nắng gắt, nhiệt độ cao" onclick="selW(this)">🌞 Nắng gắt</div>
+        <div class="wpill" data-full="🌫️ Sương mù dày, hạn chế tầm nhìn" onclick="selW(this)">🌫️ Sương mù</div>
+        <div class="wpill" data-full="🌥️ Âm u nhiều mây dự kiến sẽ mưa" onclick="selW(this)">🌥️ Âm u</div>
+        <div class="wpill" data-full="🌦️ Mưa nhẹ, mưa rải rác" onclick="selW(this)">🌦️ Mưa nhẹ</div>
+        <div class="wpill" data-full="🌧️ Mưa lớn, kéo dài" onclick="selW(this)">🌧️ Mưa lớn</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BƯỚC 3: ACTIONS -->
+  <div class="card">
+    <div class="card-hd">
+      <div class="card-num">3</div>
+      <div>
+        <div class="card-title">Tạo báo cáo</div>
+        <div class="card-sub">Nhấn nút để xử lý dữ liệu và tạo bảng báo cáo</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="btn-row">
+        <button class="btn btn-spx" onclick="generateReport()">📊 Tạo báo cáo Begin</button>
+        <button class="btn btn-green" onclick="processEndDay()">🏆 Tạo bảng End Day</button>
+        <button class="btn btn-outline" onclick="clearAll()" style="font-size:11px">🗑️ Xoá tất cả</button>
+        <span id="data-status" style="font-size:11px;color:#9E9E9E;margin-left:4px"></span>
+      </div>
+      <div id="statusBar"></div>
+    </div>
+  </div>
+
+  <!-- PANELS BEGIN + END -->
+  <div style="display:flex;gap:14px;margin-top:14px;flex-wrap:wrap">
+        <!-- INFO PANEL -->
+    <div class="begin-info" id="begin-info-panel">
+      <div class="binfo-hd">
+        <span>HUB KRONG PAK REPORT</span>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span id="rpt-date-hd" style="font-weight:400;opacity:.8">—</span>
+          <button onclick="togglePanel('begin-info-panel','btn-toggle-begin')" id="btn-toggle-begin" style="background:rgba(255,255,255,0.2);border:none;color:#fff;border-radius:4px;padding:2px 7px;font-size:12px;cursor:pointer;line-height:1.4">▲</button>
+        </div>
+      </div>
+      <table class="binfo-tbl">
+        <tr><td>01 · Thời tiết</td><td id="r-weather">—</td></tr>
+        <tr><td>02 · FTE</td><td id="r-fte">—</td></tr>
+        <tr><td>03 · Rider</td><td id="r-rider">—</td></tr>
+        <tr><td>04 · Backlog D3–D5</td><td id="r-bd3">0</td></tr>
+        <tr><td>05 · Backlog &gt;D5</td><td id="r-bgt5">0</td></tr>
+        <tr><td>06 · Đơn hẹn giao</td><td id="r-don-hen">0</td></tr>
+        <tr><td>&nbsp;&nbsp;&nbsp;· Đơn chưa xử lý</td><td id="r-don-xl">0</td></tr>
+        <tr><td>07 · Tổng assigned</td><td id="r-assigned">0</td></tr>
+        <tr><td>08 · Inbound total</td><td id="r-inb">0</td></tr>
+        <tr><td>09 · Inbound NS</td><td id="r-inb-ns">0</td></tr>
+        <tr><td>10 · Prod Rider TB</td><td id="r-prod">—</td></tr>
+        <tr><td>11 · Pending COD D-1</td><td id="r-cod">0</td></tr>
+      </table>
+      <div class="kpi-hd">KPI TRACKER</div>
+      <table class="kpi-tbl">
+        <thead><tr><th>Chỉ số</th><th>Thực tế</th><th>Target</th></tr></thead>
+        <tbody>
+          <tr>
+            <td style="text-align:left">Prod FTE</td>
+            <td id="kpi-fte" style="font-family:'JetBrains Mono',monospace">—</td>
+            <td style="color:#888">2,020</td>
+          </tr>
+          <tr>
+            <td style="text-align:left">Prod Rider</td>
+            <td id="kpi-rider" style="font-family:'JetBrains Mono',monospace">—</td>
+            <td style="color:#888">169</td>
+          </tr>
+          <tr>
+            <td style="text-align:left">LM Ontime</td>
+            <td id="kpi-lm" style="font-family:'JetBrains Mono',monospace">—</td>
+            <td style="color:#888">—</td>
+          </tr>
+        </tbody>
+      </table>
+      <!-- KPI Progress bars -->
+      <div style="padding:10px 12px;border-top:1px solid #F0F0F0">
+        <div style="font-size:10px;color:#9E9E9E;margin-bottom:6px;font-weight:600">PROD FTE PROGRESS</div>
+        <div class="pbar-wrap"><div class="pbar" id="pbar-fte" style="width:0%"></div></div>
+        <div style="font-size:10px;color:#9E9E9E;margin-top:8px;margin-bottom:6px;font-weight:600">PROD RIDER PROGRESS</div>
+        <div class="pbar-wrap"><div class="pbar" id="pbar-rider" style="width:0%"></div></div>
+      </div>
+      <div class="binfo-foot">
+      </div>
+    </div>
+        <div class="t3-right" id="er-wrap" style="display:none">
+      <div class="er-hd" style="display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <div class="er-hd-title">HUB KRONG PAK</div>
+          <div class="er-hd-sub">REPORT END DAY · <span id="er-date-line">—</span></div>
+        </div>
+        <button onclick="togglePanel('er-wrap','btn-toggle-end')" id="btn-toggle-end" style="background:rgba(255,255,255,0.2);border:none;color:#fff;border-radius:4px;padding:2px 7px;font-size:12px;cursor:pointer;line-height:1.4">▲</button>
+      </div>
+      <table class="er-tbl">
+        <tr><td>1. Năng Suất Giao Hàng</td><td id="er-ns">—</td></tr>
+        <tr><td>2. Giao Không Thành Công</td><td id="er-fail">—</td></tr>
+        <tr><td>3. NS Lấy Thành Công</td><td id="er-pickup">—</td></tr>
+        <tr><td>4. NS Marketplace Std</td><td id="er-ns-rate">—</td></tr>
+        <tr><td>5. Rider Đã Đóng COD</td><td id="er-cod">—</td></tr>
+      </table>
+      <div class="er-foot">
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ TAB 2: BÁO CÁO BEGIN ══ -->
+<div class="panel" id="t2">
+  <!-- Stat summary -->
+  <div class="stat-row" id="begin-stats" style="display:none">
+    <div class="stat-card">
+      <div class="stat-icon">📦</div>
+      <div class="stat-num" id="b-total">0</div>
+      <div class="stat-lbl">Tổng inbound</div>
+    </div>
+    <div class="stat-card blue">
+      <div class="stat-icon">🏷️</div>
+      <div class="stat-num" id="b-ns">0</div>
+      <div class="stat-lbl">Inbound NS</div>
+    </div>
+    <div class="stat-card amber">
+      <div class="stat-icon">👤</div>
+      <div class="stat-num" id="b-rider">0</div>
+      <div class="stat-lbl">Rider ON</div>
+    </div>
+    <div class="stat-card green">
+      <div class="stat-icon">📈</div>
+      <div class="stat-num" id="b-prod">0</div>
+      <div class="stat-lbl">Prod/Rider</div>
+    </div>
+  </div>
+
+  <div class="t2-layout" id="capture-begin">
+    <!-- Bảng rider BEGIN -->
+    <div style="flex:1;min-width:0">
+      <div class="begin-box" id="tbl-outer" style="display:none">
+        <div class="begin-box-hd">
+          <span class="begin-box-title">📊 Hub Krong Pak · Begin Day <span id="begin-title-date" style="font-weight:400;color:#616161;font-size:12px"></span></span>
+          <button class="btn btn-spx" onclick="captureBeginReport()" id="btn-capture-begin" style="font-size:11px;padding:5px 14px">📸 Chụp báo cáo</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead style="background:var(--spx)">
+              <tr>
+                <th style="text-align:left;min-width:150px;background:var(--spx)">RIDER NAME</th>
+                <th style="background:var(--spx)">Marketplace</th>
+                <th style="background:var(--spx)">NS Marketplace</th>
+                <th style="background:var(--spx)">SPX Reverse</th>
+                <th style="background:var(--spx)">SPX Standard</th>
+                <th style="background:var(--spx)">Std Express</th>
+                <th style="background:#C62828">TOTAL</th>
+                <th style="background:#C62828">HC</th>
+              </tr>
+            </thead>
+            <tbody id="rider-tbody"></tbody>
+            <tfoot><tr id="grand-row"></tr></tfoot>
+          </table>
+        </div>
+      </div>
+      <div id="tbl-ph" style="background:#fff;border:1px solid #EBEBEB;border-radius:10px;padding:40px;text-align:center;color:#BDBDBD">
+        <div style="font-size:28px;margin-bottom:8px">📊</div>
+        <div style="font-size:13px;font-weight:600">Chưa có dữ liệu</div>
+        <div style="font-size:11px;margin-top:4px">Paste data đầu ngày → Tạo báo cáo Begin</div>
+      </div>
+
+      <!-- Chart -->
+      <div class="chart-box" id="chart-sec" style="display:none">
+        <div class="chart-title">45-DLK Krông Pắk · Phân bổ đơn theo Rider</div>
+        <canvas id="myChart" height="75"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ TAB 3: END DAY ══ -->
+<div class="panel" id="t3">
+
+  <!-- Grand Stat Bar end day -->
+  <div class="grand-bar" id="end-stats" style="display:none">
+
+    <!-- Nhóm 1: Năng suất giao hàng -->
+    <div class="grand-group">
+      <div class="grand-group-hd deliver">🏆 Năng Suất Giao Hàng</div>
+      <div class="grand-group-body">
+        <div class="grand-kpi">
+          <div class="grand-kpi-num spx" id="e-asgn">0</div>
+          <div class="grand-kpi-lbl">Assigned</div>
+        </div>
+        <div class="grand-kpi">
+          <div class="grand-kpi-num green" id="e-dld">0</div>
+          <div class="grand-kpi-lbl">Delivered</div>
+        </div>
+        <div class="grand-kpi">
+          <div class="grand-kpi-num amber" id="e-delivering">0</div>
+          <div class="grand-kpi-lbl">Đang giao</div>
+        </div>
+        <div class="grand-kpi">
+          <div class="grand-kpi-num red" id="e-fail">0</div>
+          <div class="grand-kpi-lbl">Fail</div>
+        </div>
+        <div class="grand-kpi" id="e-sr-card">
+          <div class="grand-kpi-num" id="e-sr">—%</div>
+          <div class="grand-kpi-lbl">SR%</div>
+          <div class="grand-sr-bar"><div class="grand-sr-fill" id="pbar-sr" style="width:0%"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Nhóm 2: Đơn Ngoài Sàn NS -->
+    <div class="grand-group">
+      <div class="grand-group-hd ns">📋 Đơn Ngoài Sàn (NS)</div>
+      <div class="grand-group-body">
+        <div class="grand-kpi">
+          <div class="grand-kpi-num" style="color:#1B5E20" id="e-ns-total">0</div>
+          <div class="grand-kpi-lbl">Total NS</div>
+        </div>
+        <div class="grand-kpi">
+          <div class="grand-kpi-num green" id="e-ns-dld">0</div>
+          <div class="grand-kpi-lbl">NS Dld</div>
+        </div>
+        <div class="grand-kpi">
+          <div class="grand-kpi-num" id="e-ns-sr">—%</div>
+          <div class="grand-kpi-lbl">SR NS%</div>
+          <div class="grand-sr-bar"><div class="grand-sr-fill" id="pbar-ns-sr" style="width:0%"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Nhóm 3: Năng suất lấy -->
+    <div class="grand-group">
+      <div class="grand-group-hd pickup">🚚 Năng Suất Lấy Hàng</div>
+      <div class="grand-group-body">
+        <div class="grand-kpi">
+          <div class="grand-kpi-num purple" id="e-pickup-asgn">0</div>
+          <div class="grand-kpi-lbl">Assigned</div>
+        </div>
+        <div class="grand-kpi">
+          <div class="grand-kpi-num green" id="e-pickup-tc">0</div>
+          <div class="grand-kpi-lbl">Picked Up</div>
+        </div>
+        <div class="grand-kpi">
+          <div class="grand-kpi-num red" id="e-pickup-fail">0</div>
+          <div class="grand-kpi-lbl">Fail Lấy</div>
+        </div>
+        <div class="grand-kpi">
+          <div class="grand-kpi-num" id="e-pickup-sr">—%</div>
+          <div class="grand-kpi-lbl">SR%</div>
+          <div class="grand-sr-bar"><div class="grand-sr-fill" id="pbar-pickup-sr" style="width:0%"></div></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="t3-layout" id="capture-end">
+    <div class="t3-left">
+
+      <!-- Bảng giao -->
+      <div class="ed-box" id="ed-deliver-wrap" style="display:none">
+        <div class="ed-box-hd">
+          <span>🏆 Năng Suất Giao Hàng · 45-DLK Krông Pắk Hub</span>
+          <div style="display:flex;gap:6px;align-items:center">
+            
+            <button class="btn btn-spx" onclick="captureEndReport()" id="btn-capture-end" style="font-size:11px;padding:4px 12px">📸 Chụp báo cáo</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th rowspan="2" style="text-align:left;min-width:140px;background:var(--spx)">Rider Name</th>
+                <th colspan="5" style="background:var(--spx)">Năng Suất Giao Hàng</th>
+                <th rowspan="2" style="background:#D97706">Result</th>
+                <th colspan="4" style="background:#1B5E20">Đơn Ngoài Sàn (NS)</th>
+              </tr>
+              <tr>
+                <th style="background:#EF4444">Assigned</th>
+                <th style="background:#EF4444">Delivering</th>
+                <th style="background:#EF4444">Delivered</th>
+                <th style="background:#EF4444">OnHold</th>
+                <th style="background:#EF4444">SR%</th>
+                <th style="background:#16A34A">Total NS</th>
+                <th style="background:#16A34A">NS Dld</th>
+                <th style="background:#16A34A">SR NS%</th>
+                <th style="background:#16A34A">Result</th>
+              </tr>
+            </thead>
+            <tbody id="ed-tbody"><tr><td colspan="11"><div class="empty-state"><div class="empty-state-icon">🏆</div><div class="empty-state-title">Chưa có dữ liệu</div></div></td></tr></tbody>
+            <tfoot id="ed-tfoot"></tfoot>
+          </table>
+        </div>
+      </div>
+
+      <!-- Bảng lấy -->
+      <div class="ed-box" id="pickup-wrap" style="display:none">
+        <div class="ed-box-hd" style="color:#6D28D9">
+          <span>🚚 Năng Suất Lấy Hàng · 45-DLK Krông Pắk Hub</span>
+          
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th style="text-align:left;min-width:140px;background:#7B1FA2">Rider Name</th>
+                <th style="background:#7B1FA2">Assigned</th>
+                <th style="background:#7B1FA2">Picked Up</th>
+                <th style="background:#7B1FA2">Fail</th>
+                <th style="background:#7B1FA2">SR%</th>
+                <th style="background:#7B1FA2">Result</th>
+              </tr>
+            </thead>
+            <tbody id="pickup-tbody"><tr><td colspan="6"><div class="empty-state"><div class="empty-state-icon">🚚</div><div class="empty-state-title">Chưa có dữ liệu</div></div></td></tr></tbody>
+            <tfoot id="pickup-tfoot"></tfoot>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- END DAY REPORT PANEL -->
+
+  </div>
+
+  <!-- Placeholder -->
+  <div id="ed-placeholder">
+    <div style="background:#fff;border:1px solid #EBEBEB;border-radius:10px;padding:40px;text-align:center;color:#BDBDBD">
+      <div style="font-size:28px;margin-bottom:8px">🏆</div>
+      <div style="font-size:13px;font-weight:600">Chưa có dữ liệu</div>
+      <div style="font-size:11px;margin-top:4px">Paste data cuối ngày → Tạo bảng năng suất</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ══ TAB 4: QUICK SUMMARY ══ -->
+<div class="panel" id="t4">
+  <div class="card">
+    <div class="card-hd">
+      <div class="card-num">⚡</div>
+      <div>
+        <div class="card-title">Quick Summary — Tóm tắt nhanh báo cáo</div>
+        <div class="card-sub">Tự động tổng hợp sau khi tạo báo cáo, copy 1 click để gửi nhóm</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <div id="qs-empty" style="text-align:center;padding:30px;color:#BDBDBD">
+        <div style="font-size:28px;margin-bottom:8px">⚡</div>
+        <div style="font-size:13px;font-weight:600">Chưa có dữ liệu</div>
+        <div style="font-size:11px;margin-top:4px">Tạo báo cáo Begin hoặc End Day trước</div>
+      </div>
+
+      <!-- Begin Summary -->
+      <div id="qs-begin" style="display:none;margin-bottom:16px">
+        <div class="summary-box" id="sum-begin-box">
+          <div class="summary-box-title">📊 Begin Day Summary</div>
+          <div class="summary-text" id="sum-begin-text"></div>
+          <button class="summary-copy-btn" onclick="copySummary('begin')">📋 Copy Begin</button>
+        </div>
+      </div>
+
+      <!-- End Summary -->
+      <div id="qs-end" style="display:none">
+        <div class="summary-box" id="sum-end-box" style="background:linear-gradient(135deg,#1B5E20 0%,#2E7D32 100%)">
+          <div class="summary-box-title">🏆 End Day Summary</div>
+          <div class="summary-text" id="sum-end-text"></div>
+          <button class="summary-copy-btn" onclick="copySummary('end')">📋 Copy End Day</button>
+        </div>
+      </div>
+
+      <!-- Combined copy -->
+      <div id="qs-combined" style="display:none;margin-top:12px;text-align:center">
+        <button class="btn btn-spx" onclick="copySummary('all')" style="font-size:12px">📋 Copy cả hai báo cáo</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- end .main -->
+
+<footer class="page-footer">
+  © 2026 SPX Express – Hub 45-DLK Krong Pak &nbsp;|&nbsp; Daily Report Tool v10 &nbsp;|&nbsp; Công cụ nội bộ
+</footer>
+
+<div class="toast" id="toast"><span id="toastMsg"></span></div>
+
+<script>
+// ══ CONFIG ══
+const SHIPPERS = [
+  'Tạ Thị Hà','Trần Thị Bé Nhi','Nguyễn Đình Nhật','Nguyễn Đinh Minh Toàn',
+  'Hoàng Văn Đạt','Phạm Hồng Nhật','Hồng Đức Hạnh','Nguyễn Đức Văn',
+  'Võ Văn Công','Khổng Văn Độ','Nguyễn Thập Niên Thành','Bùi Lê Minh Hùng',
+  'Trần Thanh Đô','Nông Thị Tuyết',
+  'Nguyễn Hữu Khánh','Phạm Xuân Bình','Võ Văn Nghĩa',
+];
+const ACCOUNTS = ['Marketplace','NS Marketplace Standard','SPX Reverse Logistics','SPX Standard','Standard Express'];
+const ACC_COLORS = ['#3B82F6','#F59E0B','#EF4444','#F97316','#22C55E'];
+const MKT = new Set(['Marketplace','SPX Standard','NS Marketplace Standard']);
+const HUB_SP = new Set(['MT-45-04-KP08','MT-45-04-KP09','MT-45-04-KP10','MT-45-04-KP15','MT-45-04-KP16',
+  'MT-45-19-KP08','MT-45-19-KP09','MT-45-19-KP10','MT-45-19-KP15','MT-45-19-KP16','MT-45-04-KP11-N']);
+const TARGET = 90;
+
+let _chart = null;
+let _data = {};
+let _beginCopy = '';
+let _endCopy = '';
+let _endTableData = null;
+let _pickupTableData = null;
+let _silentGenerate = false;
+let _silentProcess = false;
+
+// ══ UTILS ══
+const g = id => document.getElementById(id);
+const val = id => g(id) ? (g(id).value||'') : '';
+function nowVN(){ return new Date(Date.now() + 7*3600*1000); }
+function todayVN(){ const d=nowVN(); return `${d.getUTCFullYear()}-${String(d.getUTCMonth()+1).padStart(2,'0')}-${String(d.getUTCDate()).padStart(2,'0')}`; }
+function fmt(v){ return v%1===0?v.toFixed(0):v.toFixed(1); }
+function syncHidden(srcId,hidId){ const el=g(hidId);if(el)el.value=val(srcId); }
+
+function toast(msg){
+  g('toastMsg').textContent=msg;
+  const t=g('toast');t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2400);
+}
+function statusBar(msg,type){
+  const b=g('statusBar');b.textContent=msg;b.style.display='block';
+  b.className=type==='ok'?'s-ok':'s-err';
+}
+function tc(s){ return s.split(' ').map(w=>w.charAt(0).toUpperCase()+w.slice(1).toLowerCase()).join(' '); }
+
+function switchTab(id){
+  ['t1','t2','t3','t4'].forEach(t=>{
+    g(t).classList.toggle('active',t===id);
+    const nav=g('nav-'+t);
+    if(nav) nav.classList.toggle('active',t===id);
+  });
+  try{localStorage.setItem('hub_active_tab',id);}catch(e){}
+}
+
+function selW(el){
+  document.querySelectorAll('.wpill').forEach(p=>p.classList.remove('sel'));
+  el.classList.add('sel');
+  g('weather-val').value=(el.dataset.full||el.textContent.trim());
+  autoSave();
+}
+
+function setLiveChip(on){
+  const chip=g('status-chip'), txt=g('status-chip-text');
+  if(!chip||!txt)return;
+  if(on){ chip.className='status-chip live'; txt.textContent='● LIVE'; }
+  else  { chip.className='status-chip idle'; txt.textContent='Chờ dữ liệu'; }
+}
+
+function flashBadge(el){
+  if(!el)return;
+  el.classList.remove('badge-flash');
+  void el.offsetWidth;
+  el.classList.add('badge-flash');
+  setTimeout(()=>el.classList.remove('badge-flash'),250);
+}
+
+// ══ LIVE CLOCK ══
+(function(){
+  function tick(){
+    const vn=nowVN();
+    const p=n=>String(n).padStart(2,'0');
+    const t=g('clock-time'),d=g('clock-date');
+    if(t) t.textContent=`${p(vn.getUTCHours())}:${p(vn.getUTCMinutes())}:${p(vn.getUTCSeconds())}`;
+    if(d) d.textContent=`${p(vn.getUTCDate())}/${p(vn.getUTCMonth()+1)}/${vn.getUTCFullYear()}`;
+  }
+  tick(); setInterval(tick,1000);
+})();
+
+// Keyboard shortcut: Ctrl+Enter = generate
+document.addEventListener('keydown', e=>{
+  if((e.ctrlKey||e.metaKey)&&e.key==='Enter'){
+    e.preventDefault();
+    const activePanel = document.querySelector('.panel.active');
+    if(activePanel&&activePanel.id==='t1') generateReport();
+  }
+});
+
+// ══ PARSE CSV ══
+function parseCSV(text){
+  const lines=text.trim().split('\n').filter(l=>l.trim());
+  if(!lines.length) return [];
+  const sep=lines[0].includes('\t')?'\t':',';
+  function splitLine(line){
+    if(sep==='\t') return line.split('\t').map(v=>v.trim().replace(/^"|"$/g,''));
+    const result=[];let cur='',inQ=false;
+    for(let i=0;i<line.length;i++){
+      const c=line[i];
+      if(c==='"'){if(inQ&&line[i+1]==='"'){cur+='"';i++;}else inQ=!inQ;}
+      else if(c===','&&!inQ){result.push(cur.trim());cur='';}
+      else cur+=c;
+    }
+    result.push(cur.trim());
+    return result;
+  }
+  const hd=splitLine(lines[0]).map(h=>h.replace(/^"|"$/g,'').trim());
+  return lines.slice(1).map(l=>{
+    const v=splitLine(l).map(v=>v.replace(/^"|"$/g,'').trim());
+    const o={};hd.forEach((h,i)=>o[h]=v[i]||'');return o;
+  });
+}
+
+// ══ MERGE DATA ══
+function mergeData(){
+  const raw=val('csvInput');
+  if(!raw.trim()) return [];
+  let rows=parseCSV(raw);
+  if(!rows.length||!rows[0]['Order ID']) return [];
+  const rawX=val('csvExtra').trim();
+  if(rawX){
+    const headerLine=raw.trim().split('\n')[0];
+    const firstLineX=rawX.split('\n')[0];
+    const hasHeader=firstLineX.includes('Order ID')||firstLineX.includes('order id');
+    const rawXH=hasHeader?rawX:(headerLine+'\n'+rawX);
+    const rx=parseCSV(rawXH);
+    if(rx.length&&rx[0]['Order ID']){
+      const ids=new Set(rows.map(r=>r['Order ID']));
+      const added=rx.filter(r=>r['Order ID']&&!ids.has(r['Order ID']));
+      rows=[...rows,...added];
+    }
+  }
+  return rows;
+}
+
+// ══ PROCESS BEGIN ══
+function processData(){
+  const rows=mergeData();
+  if(!rows.length){statusBar('❌ Chưa có dữ liệu hoặc không đọc được!','err');return;}
+
+  const today=todayVN();
+  const isZB=r=>{const z=(r['Zone']||'').trim();return z===''||z==='-';};
+  const ok=r=>!isZB(r)||(MKT.has((r['Order Account']||'').trim())&&!HUB_SP.has((r['Sort Code Name']||'').trim()));
+
+  const n   = rows.filter(r=>(r['OnHoldReason']||'').trim()==='Normal'&&ok(r)).length;
+  const ins = rows.filter(r=>(r['OnHoldReason']||'').trim()==='Insufficient time'&&ok(r)).length;
+  const una = rows.filter(r=>(r['OnHoldReason']||'').trim()==='Recipient unavailable for parcel'
+    &&parseInt(r['Total of On Hold Times']||0)>=1&&parseInt(r['Total of On Hold Times']||0)<=2&&ok(r)).length;
+  const rs  = rows.filter(r=>{
+    if((r['OnHoldReason']||'').trim()!=='Recipient reschedule') return false;
+    const h=parseInt(r['Total of On Hold Times']||0);
+    if(h<1||h>2||!ok(r)) return false;
+    const raw2=(r['Reschedule Time']||r['Reschedule Date']||'').trim();
+    const d=raw2?raw2.split(' ')[0]:'';
+    return d&&d<=today;
+  }).length;
+
+  const merged=n+rs+ins+una;
+  const inbNS=rows.filter(r=>(r['Order Account']||'').trim()==='NS Marketplace Standard').length;
+
+  const riderMap={};
+  rows.forEach(r=>{
+    let name=tc((r['Driver Name']||'').trim());
+    if(!name) return;
+    const acc=(r['Order Account']||'').trim()||'Marketplace';
+    if(!riderMap[name]) riderMap[name]={};
+    riderMap[name][acc]=(riderMap[name][acc]||0)+1;
+  });
+
+  const riderCnt=Object.keys(riderMap).length;
+  const prodRider=riderCnt>0?Math.round(merged/riderCnt):0;
+  _data={inbTotal:rows.length,inbNS,riderCnt,prodRider,merged,riderMap};
+
+  g('rider').value=riderCnt+'/'+SHIPPERS.length;
+  g('assigned').value=rows.length;
+  g('data-status').textContent=`✅ ${rows.length} đơn | ${riderCnt} rider | ${prodRider}/rider`;
+  statusBar(`✅ ${rows.length} đơn — NS: ${inbNS} | Giao hôm nay: ${merged} | Prod/Rider: ${prodRider}`,'ok');
+
+  // Update stat cards Tab 1
+  g('s-total').textContent=rows.length;
+  g('s-merged').textContent=merged;
+  g('s-ns').textContent=inbNS;
+  g('s-rider').textContent=riderCnt;
+  g('s-prod').textContent=prodRider;
+  g('stat-row-t1').style.display='';
+  setLiveChip(true);
+  autoSave();
+}
+
+// ══ GENERATE BEGIN REPORT ══
+function generateReport(){
+  const d=val('report-date-input')||todayVN();
+  if(g('report-date')) g('report-date').value=d;
+  const wt=val('weather-val')||'';
+  if(!_data.riderMap||!Object.keys(_data.riderMap).length){
+    processData();
+    if(!_data.riderMap||!Object.keys(_data.riderMap).length){toast('❌ Chưa có dữ liệu! Paste data đầu ngày trước.');return;}
+  }
+
+  const [yy,mm,dd]=d.split('-');
+  const dateStr=`${dd}/${mm}/${yy}`;
+  const wtClean=wt.replace(/[\u{1F300}-\u{1FFFF}]|[\u2600-\u26FF]|[\u2700-\u27BF]/gu,'').trim();
+  const fte=val('fte')||'2/2';
+  const rider=val('rider')||`?/${SHIPPERS.length}`;
+  const asgn=val('assigned')||'0';
+  const bd3=val('bd3')||'0';
+  const bgt5=val('bgt5')||'0';
+  const dHen=val('don-hen')||'0';
+  const dXL=val('don-xl')||'0';
+  const cod=val('cod-d1')||'0';
+  const lm=val('lm-ontime')||'0.00';
+  const {inbTotal,inbNS,prodRider,riderMap}=_data;
+
+  let rPct='';
+  if(rider.includes('/')){const[a,b]=rider.split('/').map(Number);if(b>0)rPct=' ('+Math.round(a/b*100)+'%)';}
+  const fteN=parseInt(fte.split('/')[0])||1;
+  const prodFTE=Math.round((inbTotal||0)/fteN);
+
+  g('topbar-date').textContent='Ngày '+dateStr;
+  g('rpt-date-hd').textContent='Begin '+dateStr;
+  g('begin-title-date').textContent='· '+dateStr;
+  g('r-weather').textContent=wtClean||'—';
+  g('r-fte').textContent=fte;
+  g('r-rider').textContent=rider+(rPct||'');
+  g('r-bd3').textContent=bd3;
+  g('r-bgt5').textContent=bgt5;
+  g('r-don-hen').textContent=dHen;
+  g('r-don-xl').textContent=dXL;
+  g('r-assigned').textContent=asgn;
+  g('r-inb').textContent=inbTotal||0;
+  g('r-inb-ns').textContent=inbNS||0;
+  g('r-prod').textContent=(prodRider||0)+'/Rider';
+  g('r-cod').textContent=cod;
+
+  // KPI + progress bars
+  const kpiFTE=g('kpi-fte'), kpiRider=g('kpi-rider'), kpiLM=g('kpi-lm');
+  kpiFTE.textContent=prodFTE.toLocaleString();
+  kpiFTE.className=prodFTE>=2020?'kg':'kb';
+  kpiRider.textContent=prodRider||0;
+  kpiRider.className=(prodRider||0)>=169?'kg':'kb';
+  kpiLM.textContent=lm+'%';
+  const pbarFTE=Math.min(100,(prodFTE/2020)*100);
+  const pbarRider=Math.min(100,((prodRider||0)/169)*100);
+  g('pbar-fte').style.width=pbarFTE+'%';
+  g('pbar-fte').className='pbar '+(prodFTE>=2020?'good-bar':'fail-bar');
+  g('pbar-rider').style.width=pbarRider+'%';
+  g('pbar-rider').className='pbar '+((prodRider||0)>=169?'good-bar':'fail-bar');
+
+  // Tab 2 stat cards
+  g('b-total').textContent=inbTotal||0;
+  g('b-ns').textContent=inbNS||0;
+  g('b-rider').textContent=Object.keys(riderMap).length;
+  g('b-prod').textContent=prodRider||0;
+  g('begin-stats').style.display='';
+
+  renderBeginTable(riderMap);
+  renderChart(riderMap);
+
+  // Badge
+  const b2=g('badge-t2');
+  if(b2){b2.textContent=asgn;b2.className='nav-badge';flashBadge(b2);}
+
+  _beginCopy=`Hub Krong Pak Report Begin day ${dateStr}
+1. Thời tiết: ${wtClean||'—'}
+2. FTE: ${fte}
+3. Rider: ${rider}${rPct||''}
+4. Backlog D3 - D5: ${bd3}
+5. Backlog >D5: ${bgt5}
+6. Backlogs:
+   Đơn hẹn giao: ${dHen}
+   Đơn chưa xử lý: ${dXL}
+7. Tổng assigned: ${asgn}
+8. Inbound total: ${inbTotal||0}
+9. Inbound đơn NS: ${inbNS||0}
+10. Prod Rider trung bình: ${prodRider||0}/Rider
+11. Pending COD D-1: ${cod}`;
+
+  updateQuickSummary();
+  autoSave();
+  if(!_silentGenerate){switchTab('t2');toast('✅ Báo cáo Begin đã tạo xong!');}
+}
+
+// ══ BEGIN TABLE ══
+function renderBeginTable(riderMap){
+  const active=new Set(Object.keys(riderMap));
+  const offNames=SHIPPERS.filter(n=>!active.has(n));
+  const allNames=[...Object.keys(riderMap),...offNames];
+  const grand={};ACCOUNTS.forEach(a=>grand[a]=0);
+  let grandT=0,grandHC=0,html='';
+
+  allNames.forEach(name=>{
+    const d=riderMap[name]||{};
+    const isOn=active.has(name);
+    const row={};ACCOUNTS.forEach(a=>{row[a]=d[a]||0;grand[a]+=(d[a]||0);});
+    const tot=Object.values(row).reduce((s,v)=>s+v,0);
+    grandT+=tot;if(isOn)grandHC++;
+    html+=`<tr class="${isOn?'':'off'}">
+      <td>${name}</td>
+      ${ACCOUNTS.map(a=>`<td style="text-align:center">${isOn?(row[a]||0):''}</td>`).join('')}
+      <td style="text-align:center;font-weight:800;color:${isOn?'var(--spx)':'#BDBDBD'}">${isOn?tot:0}</td>
+      <td style="text-align:center"><span class="${isOn?'bon':'boff'}">${isOn?'ON':'OFF'}</span></td>
+    </tr>`;
+  });
+
+  g('rider-tbody').innerHTML=html;
+  g('grand-row').innerHTML=`<td style="background:#C62828;color:#fff;font-weight:700">GRAND TOTAL</td>${ACCOUNTS.map(a=>`<td style="background:#C62828;color:#fff;font-weight:700;text-align:center">${grand[a]||0}</td>`).join('')}<td style="background:#C62828;color:#fff;font-weight:700;text-align:center">${grandT}</td><td style="background:#C62828;color:#fff;font-weight:700;text-align:center">${grandHC}</td>`;
+  g('tbl-outer').style.display='';
+  g('tbl-ph').style.display='none';
+}
+
+// ══ CHART ══
+function renderChart(riderMap){
+  g('chart-sec').style.display='';
+  const labels=Object.keys(riderMap);
+  const datasets=ACCOUNTS.map((acc,i)=>({
+    label:acc,data:labels.map(n=>riderMap[n][acc]||0),
+    backgroundColor:ACC_COLORS[i],borderRadius:0,borderSkipped:false,
+  }));
+  const ctx=g('myChart').getContext('2d');
+  if(_chart)_chart.destroy();
+  _chart=new Chart(ctx,{
+    type:'bar',data:{labels,datasets},
+    options:{
+      responsive:true,
+      plugins:{
+        legend:{position:'right',labels:{font:{size:10},boxWidth:12,padding:8}},
+        tooltip:{mode:'index',intersect:false},
+      },
+      scales:{
+        x:{stacked:true,ticks:{font:{size:9},maxRotation:35},grid:{display:false}},
+        y:{stacked:true,ticks:{font:{size:9}},grid:{color:'#f0f0f0'}},
+      },
+    },
+    plugins:[{
+      id:'lbl',
+      afterDatasetsDraw(chart){
+        const c=chart.ctx,last=chart.data.datasets.length-1;
+        chart.data.labels.forEach((_,i)=>{
+          const meta=chart.getDatasetMeta(last);
+          if(!meta.data[i]) return;
+          const bar=meta.data[i];
+          const tot=chart.data.datasets.reduce((s,ds)=>s+(ds.data[i]||0),0);
+          if(!tot) return;
+          c.save();c.font='700 11px Arial';c.fillStyle='#fff';
+          c.textAlign='center';c.fillText(tot,bar.x,bar.y-4);c.restore();
+        });
+      }
+    }]
+  });
+}
+
+// ══ PROCESS END DAY ══
+function processEndDay(){
+  const rawEnd=val('csvEnd').trim();
+  if(!rawEnd){toast('❌ Chưa paste data cuối ngày!');return;}
+  const rowsEnd=parseCSV(rawEnd);
+  if(!rowsEnd.length||!rowsEnd[0]['Order ID']){toast('❌ Không đọc được data cuối ngày!');return;}
+
+  const rowsBegin=mergeData();
+  const assignedMap={};const nsAssignedMap={};
+  rowsBegin.forEach(r=>{
+    const name=tc((r['Driver Name']||'').trim());
+    if(!name) return;
+    assignedMap[name]=(assignedMap[name]||0)+1;
+    if((r['Order Account']||'').trim()==='NS Marketplace Standard')
+      nsAssignedMap[name]=(nsAssignedMap[name]||0)+1;
+  });
+
+  const riderStats={};
+  rowsEnd.forEach(r=>{
+    const name=tc((r['Driver Name']||'').trim());
+    if(!name) return;
+    if(!riderStats[name]) riderStats[name]={delivering:0,delivered:0,nsDelivered:0};
+    const st=(r['Status']||'').trim();
+    const isNS=(r['Order Account']||'').trim()==='NS Marketplace Standard';
+    if(st==='Delivered'){riderStats[name].delivered++;if(isNS)riderStats[name].nsDelivered++;}
+    else if(st==='Delivering') riderStats[name].delivering++;
+  });
+
+  const activeDelivery=new Set(Object.keys(riderStats));
+  let html='',gAsgn=0,gDlv=0,gDld=0,gFail=0,gNS=0,gNSDld=0;
+
+  SHIPPERS.forEach(name=>{
+    const isOn=activeDelivery.has(name);
+    const s=riderStats[name]||{delivering:0,delivered:0,fail:0,nsDelivered:0};
+    const asgn=assignedMap[name]||(isOn?s.delivering+s.delivered:0);
+    const fail=isOn?Math.max(0,asgn-s.delivered-s.delivering):0;
+    const nsTotal=nsAssignedMap[name]||0;
+    const sr=asgn>0?(s.delivered/asgn*100):0;
+    const nsSR=nsTotal>0?(s.nsDelivered/nsTotal*100):0;
+    const pass=sr>=TARGET;
+    if(isOn){gAsgn+=asgn;gDlv+=s.delivering;gDld+=s.delivered;gFail+=fail;gNS+=nsTotal;gNSDld+=s.nsDelivered;}
+
+    if(!isOn){
+      html+=`<tr class="off"><td>${name}</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0%</td>
+        <td><span class="off-badge">OFF</span></td>
+        <td>0</td><td>0</td><td>—</td>
+        <td><span class="off-badge">OFF</span></td></tr>`;
+    } else {
+      const nsPass=nsTotal>0&&nsSR>=TARGET;
+      const nsResultBadge=nsTotal===0
+        ?`<span class="off-badge">—</span>`
+        :`<span class="${nsPass?'good':'fail-badge'}">${nsPass?'GOOD':'FAIL'}</span>`;
+      html+=`<tr>
+        <td>${name}</td>
+        <td style="text-align:center">${asgn}</td>
+        <td style="text-align:center">${s.delivering}</td>
+        <td style="text-align:center">${s.delivered}</td>
+        <td style="text-align:center">${fail}</td>
+        <td style="text-align:center;font-weight:700;font-family:'JetBrains Mono',monospace;color:${pass?'#2E7D32':'#C62828'}">${fmt(sr)}%</td>
+        <td style="text-align:center"><span class="${pass?'good':'fail-badge'}">${pass?'GOOD':'FAIL'}</span></td>
+        <td class="ns-cell" style="text-align:center;font-weight:600;color:#fff">${nsTotal}</td>
+        <td class="ns-cell" style="text-align:center;font-weight:600;color:#fff">${s.nsDelivered}</td>
+        <td class="ns-cell" style="text-align:center;font-weight:700;font-family:'JetBrains Mono',monospace;color:${nsTotal>0?(nsSR>=TARGET?'#fff':'#FCA5A5'):'#888'}">${nsTotal>0?fmt(nsSR)+'%':'—'}</td>
+        <td style="text-align:center">${nsResultBadge}</td></tr>`;
+    }
+  });
+
+  const gSR=gAsgn>0?(gDld/gAsgn*100):0;
+  const gNSSR=gNS>0?(gNSDld/gNS*100):0;
+  const failRate=gAsgn>0?(gFail/gAsgn*100):0;
+
+  // Lưu data cho Unicode table
+  _endTableData={rows:SHIPPERS.map(name=>{
+    const isOn=activeDelivery.has(name);
+    const s=riderStats[name]||{delivering:0,delivered:0,nsDelivered:0};
+    const asgn=assignedMap[name]||(isOn?s.delivering+s.delivered:0);
+    const fail=isOn?Math.max(0,asgn-s.delivered-s.delivering):0;
+    const nsTotal=nsAssignedMap[name]||0;
+    const sr=asgn>0?(s.delivered/asgn*100):0;
+    const nsSR=nsTotal>0?(s.nsDelivered/nsTotal*100):0;
+    return {name,isOn,asgn,delivering:s.delivering,delivered:s.delivered,fail,sr,nsTotal,nsDelivered:s.nsDelivered,nsSR};
+  }),gAsgn,gDlv,gDld,gFail,gSR,gNS,gNSDld,gNSSR,failRate};
+  g('ed-tbody').innerHTML=html;
+  g('ed-tfoot').innerHTML=`
+    <td style="background:var(--spx);color:#fff">GRAND TOTAL</td>
+    <td style="background:#EF4444;color:#fff;text-align:center">${gAsgn}</td>
+    <td style="background:#EF4444;color:#fff;text-align:center">${gDlv}</td>
+    <td style="background:#EF4444;color:#fff;text-align:center">${gDld}</td>
+    <td style="background:#EF4444;color:#fff;text-align:center">${gFail}</td>
+    <td style="background:#EF4444;color:#fff;text-align:center;font-family:'JetBrains Mono',monospace">${fmt(gSR)}%</td>
+    <td style="background:${gSR>=TARGET?'#2E7D32':'#C62828'};color:#fff;text-align:center">${gSR>=TARGET?'GOOD':'FAIL'}</td>
+    <td style="background:#1B5E20;color:#fff;font-weight:700;text-align:center">${gNS}</td>
+    <td style="background:#1B5E20;color:#fff;font-weight:700;text-align:center">${gNSDld}</td>
+    <td style="background:#1B5E20;color:#fff;font-weight:700;text-align:center;font-family:'JetBrains Mono',monospace">${fmt(gNSSR)}%</td>
+    <td style="background:${gNSSR>=TARGET?'#2E7D32':'#C62828'};color:#fff;text-align:center">${gNSSR>=TARGET?'GOOD':'FAIL'}</td>`;
+  g('ed-deliver-wrap').style.display='';
+
+  // Pickup
+  const rawPickup=val('csvPickup').trim();
+  let gPAsgn=0,gPUp=0,gPFail=0;const pickupMap={};
+
+  if(rawPickup){
+    const rowsP=parseCSV(rawPickup);
+    if(rowsP.length&&rowsP[0]['Driver']){
+      rowsP.forEach(r=>{
+        let name=tc((r['Driver']||'').replace(/^\[\d+\]/,'').trim());
+        if(!name||name.includes('Hub')||name.includes('Virtual')||name.includes('Tk Hub')) return;
+        const asgn=parseInt(r['Number of Pickup Parcels Assigned (VN) with all Exclusions']||0)||0;
+        const pickedUp=parseInt(r['Number of parcels picked up']||0)||0;
+        const fail=parseInt(r['Number of pickup parcels on-hold(include pending_failed)']||0)||0;
+        const srStr=(r['Pickup Success Rate (VN) with all Exclusions']||'0').replace('%','').trim();
+        const sr=parseFloat(srStr)||0;
+        pickupMap[name]={asgn,pickedUp,fail,sr};
+        gPAsgn+=asgn;gPUp+=pickedUp;gPFail+=fail;
+      });
+    }
+  }
+
+  if(Object.keys(pickupMap).length>0){
+    let htmlP='';
+    SHIPPERS.forEach(name=>{
+      const p=pickupMap[name];
+      if(!p){
+        htmlP+=`<tr class="off"><td>${name}</td><td colspan="5" style="text-align:center;color:#BDBDBD">—</td></tr>`;
+        return;
+      }
+      const pass=p.sr>=TARGET;
+      htmlP+=`<tr>
+        <td>${name}</td>
+        <td style="text-align:center">${p.asgn}</td>
+        <td style="text-align:center">${p.pickedUp}</td>
+        <td style="text-align:center">${p.fail}</td>
+        <td style="text-align:center;font-weight:700;font-family:'JetBrains Mono',monospace;color:${pass?'#2E7D32':'#C62828'}">${fmt(p.sr)}%</td>
+        <td style="text-align:center"><span class="${pass?'good':'fail-badge'}">${pass?'GOOD':'FAIL'}</span></td></tr>`;
+    });
+    const gPSR=gPAsgn>0?(gPUp/gPAsgn*100):0;
+    g('pickup-tbody').innerHTML=htmlP;
+    g('pickup-tfoot').innerHTML=`
+      <td style="background:#7B1FA2;color:#fff">GRAND TOTAL</td>
+      <td style="background:#7B1FA2;color:#fff;text-align:center">${gPAsgn}</td>
+      <td style="background:#7B1FA2;color:#fff;text-align:center">${gPUp}</td>
+      <td style="background:#7B1FA2;color:#fff;text-align:center">${gPFail}</td>
+      <td style="background:#7B1FA2;color:#fff;text-align:center;font-family:'JetBrains Mono',monospace">${fmt(gPSR)}%</td>
+      <td style="background:${gPSR>=TARGET?'#2E7D32':'#C62828'};color:#fff;text-align:center">${gPSR>=TARGET?'GOOD':'FAIL'}</td>`;
+    g('pickup-wrap').style.display='';
+    g('er-pickup').textContent=`${fmt(gPSR)}%   ${gPUp}/${gPAsgn}`;
+    // Update grand bar pickup
+    g('e-pickup-asgn').textContent=gPAsgn;
+    g('e-pickup-tc').textContent=gPUp;
+    g('e-pickup-fail').textContent=gPFail;
+    const pSrEl=g('e-pickup-sr'); pSrEl.textContent=fmt(gPSR)+'%'; pSrEl.className='grand-kpi-num '+(gPSR>=TARGET?'sr-good':'sr-bad');
+    g('pbar-pickup-sr').style.width=Math.min(100,gPSR)+'%'; g('pbar-pickup-sr').style.background=gPSR>=TARGET?'#2E7D32':'#C62828';
+    // Lưu cho Unicode table
+    _pickupTableData={rows:SHIPPERS.map(name=>({name,p:pickupMap[name]||null})),gPAsgn,gPUp,gPFail};
+  }
+
+  // End report panel
+  const riderOnCount=SHIPPERS.filter(n=>activeDelivery.has(n)).length;
+  g('er-ns').textContent=`${fmt(gSR)}%   ${gDld}/${gAsgn}`;
+  g('er-fail').textContent=`${fmt(failRate)}%   ${gFail}/${gAsgn}`;
+  if(!rawPickup||!Object.keys(pickupMap).length) g('er-pickup').textContent='0%   0/0';
+  g('er-ns-rate').textContent=`${fmt(gNSSR)}%   ${gNSDld}/${gNS}`;
+  g('er-cod').textContent=`${riderOnCount}/${SHIPPERS.length}   0%`;
+  g('er-wrap').style.display='';
+  g('ed-placeholder').style.display='none';
+
+  const d=val('report-date-input')||todayVN();
+  const [yy,mm,dd]=d.split('-');
+  const ds=dd&&mm&&yy?`${dd}/${mm}/${yy}`:'—';
+  if(g('er-date-line')) g('er-date-line').textContent=ds;
+
+  // Stat cards End Day (Grand Bar)
+  g('e-asgn').textContent=gAsgn;
+  g('e-dld').textContent=gDld;
+  g('e-fail').textContent=gFail;
+  g('e-delivering').textContent=gDlv;
+  // SR giao
+  const srEl=g('e-sr'); srEl.textContent=fmt(gSR)+'%';
+  srEl.className='grand-kpi-num '+(gSR>=TARGET?'sr-good':'sr-bad');
+  const srPct=Math.min(100,gSR);
+  g('pbar-sr').style.width=srPct+'%';
+  g('pbar-sr').style.background=gSR>=TARGET?'#2E7D32':'#C62828';
+  // NS
+  g('e-ns-total').textContent=gNS;
+  g('e-ns-dld').textContent=gNSDld;
+  const nsEl=g('e-ns-sr'); nsEl.textContent=gNS>0?fmt(gNSSR)+'%':'—%';
+  nsEl.className='grand-kpi-num '+(gNS>0?(gNSSR>=TARGET?'sr-good':'sr-bad'):'');
+  g('pbar-ns-sr').style.width=gNS>0?Math.min(100,gNSSR)+'%':'0%';
+  g('pbar-ns-sr').style.background=gNSSR>=TARGET?'#2E7D32':'#C62828';
+  // Pickup (sẽ được ghi đè bên dưới khi có data)
+  g('e-pickup-tc').textContent=gPUp;
+  g('e-pickup-fail').textContent=gPFail;
+  g('end-stats').style.display='';
+
+  // Badge
+  const b3=g('badge-t3');
+  if(b3){b3.textContent=fmt(gSR)+'%';b3.className='nav-badge '+(gSR>=TARGET?'':'');flashBadge(b3);}
+
+  _endCopy=`HUB KRONG PAK – REPORT END DAY   ${ds}
+1.Năng Suất Giao Hàng : ${fmt(gSR)}%   ${gDld}/${gAsgn}
+2.Giao Không Thành Công : ${fmt(failRate)}%   ${gFail}/${gAsgn}
+3.Năng Suất Lấy Thành Công : ${g('er-pickup').textContent}
+4.NS Marketplace Standard : ${fmt(gNSSR)}%   ${gNSDld}/${gNS}
+5.Rider Đã Đóng COD : ${riderOnCount}/${SHIPPERS.length}   0%`;
+
+  updateQuickSummary();
+  if(!_silentProcess){switchTab('t3');toast('✅ Đã tạo bảng năng suất!');}
+}
+
+// ══ QUICK SUMMARY ══
+function updateQuickSummary(){
+  const hasBegin=!!_beginCopy;
+  const hasEnd=!!_endCopy;
+  g('qs-empty').style.display=(hasBegin||hasEnd)?'none':'';
+  g('qs-begin').style.display=hasBegin?'block':'none';
+  g('qs-end').style.display=hasEnd?'block':'none';
+  g('qs-combined').style.display=(hasBegin&&hasEnd)?'block':'none';
+  if(hasBegin){
+    g('sum-begin-box').style.display='block';
+    g('sum-begin-text').textContent=_beginCopy;
+  }
+  if(hasEnd){
+    g('sum-end-box').style.display='block';
+    g('sum-end-text').textContent=_endCopy;
+  }
+}
+
+function copySummary(type){
+  const beginFull = _beginCopy ? (buildBeginTable()+'\n\n'+_beginCopy) : '';
+  const endFull   = _endCopy   ? buildEndTable() : '';
+  let text='';
+  if(type==='begin') text=beginFull;
+  else if(type==='end') text=endFull;
+  else text=(beginFull?beginFull+'\n\n':'')+(endFull||'');
+  if(!text){toast('❌ Chưa có dữ liệu!');return;}
+  doCopy(text,'✅ Đã copy summary!');
+}
+
+// ══ UNICODE TABLE BUILDER ══
+function pad(s, n, right=false){
+  // pad string s to width n (monospace, count each char as 1 for ASCII, 2 for CJK)
+  const cw = str => [...str].reduce((a,c)=>{const cp=c.codePointAt(0);return a+(cp>127?2:1);},0);
+  const w = cw(String(s));
+  const spaces = Math.max(0, n - w);
+  return right ? String(s) + ' '.repeat(spaces) : ' '.repeat(spaces) + String(s);
+}
+
+function buildBeginTable(){
+  if(!_data.riderMap) return '';
+  const riderMap = _data.riderMap;
+  const active = new Set(Object.keys(riderMap));
+  const offNames = SHIPPERS.filter(n=>!active.has(n));
+  const allNames = [...Object.keys(riderMap), ...offNames];
+
+  // column widths
+  const CW = [22, 6, 6, 6, 6, 6, 7, 4]; // name, mkt, ns, rev, std, stdex, total, hc
+  const headers = ['RIDER NAME','MKT','NS','REV','STD','STDEX','TOTAL','HC'];
+  const ACCS = ACCOUNTS; // ['Marketplace','NS Marketplace Standard','SPX Reverse Logistics','SPX Standard','Standard Express']
+
+  const hr  = (l,m,r,f) => l + CW.map(w=>f.repeat(w+2)).join(m) + r;
+  const row = cells => '│' + cells.map((c,i)=>' '+pad(c,CW[i],true)+' ').join('│') + '│';
+
+  const lines = [];
+  lines.push('📊 HUB KRONG PAK – BEGIN DAY ' + (g('begin-title-date')?g('begin-title-date').textContent.replace('· ',''):''));
+  lines.push('');
+  lines.push(hr('┌','┬','┐','─'));
+  lines.push(row(headers));
+  lines.push(hr('├','┼','┤','─'));
+
+  let grandT=0, grandHC=0;
+  const grand={};ACCOUNTS.forEach(a=>grand[a]=0);
+
+  allNames.forEach(name=>{
+    const d = riderMap[name]||{};
+    const isOn = active.has(name);
+    const vals = ACCS.map(a=>{const v=d[a]||0;grand[a]+=v;return isOn?String(v):'';});
+    const tot = isOn?Object.values(d).reduce((s,v)=>s+v,0):0;
+    grandT += tot;
+    if(isOn) grandHC++;
+    const hc = isOn?'ON':'OFF';
+    lines.push(row([name, ...vals, isOn?String(tot):'', hc]));
+  });
+
+  lines.push(hr('├','┼','┤','─'));
+  const grandVals = ACCS.map(a=>String(grand[a]||0));
+  lines.push(row(['GRAND TOTAL', ...grandVals, String(grandT), String(grandHC)]));
+  lines.push(hr('└','┴','┘','─'));
+  return lines.join('\n');
+}
+
+function buildEndTable(){
+  if(!_endTableData) return '';
+  const {rows, gAsgn, gDlv, gDld, gFail, gSR, gNS, gNSDld, gNSSR, failRate} = _endTableData;
+
+  const CW = [22, 7, 8, 8, 5, 8, 7]; // name,asgn,dlving,dld,fail,sr,result
+  const headers = ['RIDER NAME','ASGN','DLVING','DLD','FAIL','SR%','KQ'];
+
+  const hr  = (l,m,r,f) => l + CW.map(w=>f.repeat(w+2)).join(m) + r;
+  const row = cells => '│' + cells.map((c,i)=>' '+pad(c,CW[i],true)+' ').join('│') + '│';
+
+  const lines = [];
+  lines.push('🏆 NĂNG SUẤT GIAO HÀNG – END DAY ' + (g('er-date-line')?g('er-date-line').textContent:''));
+  lines.push('');
+  lines.push(hr('┌','┬','┐','─'));
+  lines.push(row(headers));
+  lines.push(hr('├','┼','┤','─'));
+
+  rows.forEach(r=>{
+    lines.push(row([
+      r.name,
+      r.isOn?String(r.asgn):'—',
+      r.isOn?String(r.delivering):'—',
+      r.isOn?String(r.delivered):'—',
+      r.isOn?String(r.fail):'—',
+      r.isOn?fmt(r.sr)+'%':'—',
+      r.isOn?(r.sr>=TARGET?'GOOD':'FAIL'):'OFF'
+    ]));
+  });
+
+  lines.push(hr('├','┼','┤','─'));
+  lines.push(row(['GRAND TOTAL', String(gAsgn), String(gDlv), String(gDld), String(gFail), fmt(gSR)+'%', gSR>=TARGET?'GOOD':'FAIL']));
+  lines.push(hr('└','┴','┘','─'));
+
+  // NS table nếu có
+  const nsRows = rows.filter(r=>r.isOn&&r.nsTotal>0);
+  if(nsRows.length){
+    const CWN=[22,8,8,8,7];
+    const hrN=(l,m,r,f)=>l+CWN.map(w=>f.repeat(w+2)).join(m)+r;
+    const rowN=cells=>'│'+cells.map((c,i)=>' '+pad(c,CWN[i],true)+' ').join('│')+'│';
+    lines.push('');
+    lines.push('📦 ĐƠN NGOÀI SÀN (NS)');
+    lines.push(hrN('┌','┬','┐','─'));
+    lines.push(rowN(['RIDER NAME','TOTAL NS','NS DLD','SR NS%','KQ']));
+    lines.push(hrN('├','┼','┤','─'));
+    nsRows.forEach(r=>{
+      lines.push(rowN([r.name,String(r.nsTotal),String(r.nsDelivered),fmt(r.nsSR)+'%',r.nsSR>=TARGET?'GOOD':'FAIL']));
+    });
+    lines.push(hrN('├','┼','┤','─'));
+    lines.push(rowN(['GRAND TOTAL',String(gNS),String(gNSDld),fmt(gNSSR)+'%',gNSSR>=TARGET?'GOOD':'FAIL']));
+    lines.push(hrN('└','┴','┘','─'));
+  }
+
+  // Pickup nếu có
+  if(_pickupTableData&&_pickupTableData.rows.length){
+    const {rows:pr,gPAsgn,gPUp,gPFail} = _pickupTableData;
+    const gPSR=gPAsgn>0?(gPUp/gPAsgn*100):0;
+    const CWP=[22,7,8,5,8,7];
+    const hrP=(l,m,r,f)=>l+CWP.map(w=>f.repeat(w+2)).join(m)+r;
+    const rowP=cells=>'│'+cells.map((c,i)=>' '+pad(c,CWP[i],true)+' ').join('│')+'│';
+    lines.push('');
+    lines.push('🚚 NĂNG SUẤT LẤY HÀNG');
+    lines.push(hrP('┌','┬','┐','─'));
+    lines.push(rowP(['RIDER NAME','ASGN','PICKED','FAIL','SR%','KQ']));
+    lines.push(hrP('├','┼','┤','─'));
+    pr.forEach(r=>{
+      lines.push(rowP([r.name,r.p?String(r.p.asgn):'—',r.p?String(r.p.pickedUp):'—',r.p?String(r.p.fail):'—',r.p?fmt(r.p.sr)+'%':'—',r.p?(r.p.sr>=TARGET?'GOOD':'FAIL'):'OFF']));
+    });
+    lines.push(hrP('├','┼','┤','─'));
+    lines.push(rowP(['GRAND TOTAL',String(gPAsgn),String(gPUp),String(gPFail),fmt(gPSR)+'%',gPSR>=TARGET?'GOOD':'FAIL']));
+    lines.push(hrP('└','┴','┘','─'));
+  }
+
+  lines.push('');
+  lines.push(_endCopy);
+  return lines.join('\n');
+}
+
+// ══ CAPTURE & COPY ảnh ══
+function copyBeginReport(){
+  if(!_beginCopy){toast('❌ Chưa có báo cáo Begin!');return;}
+  const tbl = buildBeginTable();
+  const full = tbl + '\n\n' + _beginCopy;
+  doCopy(full,'✅ Đã copy báo cáo Begin!');
+}
+function copyEndReport(){
+  if(!_endCopy){toast('❌ Chưa có báo cáo End Day!');return;}
+  const tbl = buildEndTable();
+  doCopy(tbl,'✅ Đã copy báo cáo End Day!');
+}
+function doCopy(text,msg){
+  navigator.clipboard.writeText(text)
+    .then(()=>toast(msg))
+    .catch(()=>{
+      const ta=document.createElement('textarea');ta.value=text;
+      document.body.appendChild(ta);ta.select();
+      document.execCommand('copy');document.body.removeChild(ta);
+      toast(msg);
+    });
+}
+
+// ══ CLEAR ══
+function clearAll(){
+  if(!confirm('Xoá tất cả dữ liệu?')) return;
+  ['csvInput','csvExtra','csvEnd','csvPickup'].forEach(id=>{if(g(id))g(id).value='';});
+  ['bd3-input','bgt5-input','don-hen-input','don-xl-input','cod-d1-input','lm-ontime-input'].forEach(id=>{if(g(id))g(id).value='';});
+  g('statusBar').style.display='none';
+  g('data-status').textContent='';
+  document.querySelectorAll('.wpill').forEach(p=>p.classList.remove('sel'));
+  if(g('weather-val'))g('weather-val').value='';
+  _data={};_beginCopy='';_endCopy='';_endTableData=null;_pickupTableData=null;
+  g('stat-row-t1').style.display='none';
+  g('begin-stats').style.display='none';
+  g('end-stats').style.display='none';
+  ['badge-t2','badge-t3'].forEach(id=>{const b=g(id);if(b){b.textContent='—';b.className='nav-badge gray';}});
+  setLiveChip(false);
+  updateQuickSummary();
+  try{['hub_csv','hub_csv_extra','hub_csv_end','hub_csv_pickup','hub_form','hub_active_tab'].forEach(k=>localStorage.removeItem(k));}catch(e){}
+  toast('✅ Đã xoá tất cả!');
+}
+
+// ══ AUTO SAVE / LOAD ══
+function autoSave(){
+  try{
+    localStorage.setItem('hub_csv',val('csvInput'));
+    localStorage.setItem('hub_csv_extra',val('csvExtra'));
+    localStorage.setItem('hub_csv_end',val('csvEnd'));
+    localStorage.setItem('hub_csv_pickup',val('csvPickup'));
+    localStorage.setItem('hub_form',JSON.stringify({
+      date:val('report-date-input'),fte:val('fte'),
+      bd3:val('bd3-input'),bgt5:val('bgt5-input'),
+      donHen:val('don-hen-input'),donXL:val('don-xl-input'),
+      cod:val('cod-d1-input'),lm:val('lm-ontime-input'),
+      weather:val('weather-val'),
+    }));
+  }catch(e){}
+}
+
+function loadSaved(){
+  try{
+    const set=(id,v)=>{if(v!==null&&v!==undefined&&v!==''&&g(id))g(id).value=v;};
+    set('csvInput',localStorage.getItem('hub_csv'));
+    set('csvExtra',localStorage.getItem('hub_csv_extra'));
+    set('csvEnd',localStorage.getItem('hub_csv_end'));
+    set('csvPickup',localStorage.getItem('hub_csv_pickup'));
+
+    const raw=localStorage.getItem('hub_form');
+    if(raw){
+      const d=JSON.parse(raw);
+      if(d.date) set('report-date-input',d.date);
+      set('fte',d.fte);
+      set('bd3-input',d.bd3);set('bgt5-input',d.bgt5);
+      set('don-hen-input',d.donHen);set('don-xl-input',d.donXL);
+      set('cod-d1-input',d.cod);set('lm-ontime-input',d.lm);
+      // Sync hidden fields
+      ['bd3','bgt5','don-hen','don-xl','cod-d1','lm-ontime'].forEach((hid,i)=>{
+        const src=['bd3-input','bgt5-input','don-hen-input','don-xl-input','cod-d1-input','lm-ontime-input'][i];
+        syncHidden(src,hid);
+      });
+      if(d.weather){
+        set('weather-val',d.weather);
+        document.querySelectorAll('.wpill').forEach(p=>{
+          if((p.dataset.full||p.textContent.trim())===d.weather)p.classList.add('sel');
+        });
+      }
+    }
+
+    const hasCsvInput=val('csvInput').trim();
+    const hasCsvEnd=val('csvEnd').trim();
+    const savedTab=localStorage.getItem('hub_active_tab')||'t1';
+
+    if(hasCsvInput){
+      setTimeout(()=>{
+        processData();
+        if(_data.riderMap&&Object.keys(_data.riderMap).length){
+          _silentGenerate=true;
+          generateReport();
+          _silentGenerate=false;
+        }
+        if(hasCsvEnd){
+          _silentProcess=true;
+          processEndDay();
+          _silentProcess=false;
+        }
+        switchTab(savedTab);
+        g('data-status').textContent+=' · 🔄 Đã khôi phục';
+      },250);
+    }
+  }catch(e){console.error('loadSaved:',e);}
+}
+
+// ══ INIT ══
+document.querySelectorAll('input,select').forEach(el=>{
+  el.addEventListener('input',autoSave);
+  el.addEventListener('change',autoSave);
+});
+document.querySelectorAll('textarea').forEach(el=>{
+  el.addEventListener('paste',()=>setTimeout(autoSave,50));
+});
+
+window.addEventListener('DOMContentLoaded',()=>{
+  const today=todayVN();
+  if(g('report-date')) g('report-date').value=today;
+  if(g('report-date-input')) g('report-date-input').value=today;
+  const[yy,mm,dd]=today.split('-');
+  g('topbar-date').textContent='Ngày '+dd+'/'+mm+'/'+yy;
+  g('ed-deliver-wrap').style.display='none';
+  g('pickup-wrap').style.display='none';
+  g('er-wrap').style.display='none';
+  loadSaved();
+});
+
+// ══ CAPTURE DARK: dùng onclone để tô tối trên bản clone, không ảnh hưởng trang thật ══
+function _darkifyClone(cloneDoc) {
+  const BG_MAP = [
+    [/rgb\(255,\s*255,\s*255\)/,   '#222'],
+    [/rgb\(250,\s*250,\s*250\)/,   '#262626'],
+    [/rgb\(245,\s*245,\s*245\)/,   '#1e1e1e'],
+    [/rgb\(232,\s*245,\s*233\)/,   '#1B4332'],
+    [/rgb\(255,\s*235,\s*238\)/,   '#7F1D1D'],
+    [/rgb\(255,\s*242,\s*240\)/,   '#2a1a18'],
+    [/rgb\(248,\s*248,\s*248\)/,   '#262626'],
+    [/rgb\(238,\s*238,\s*238\)/,   '#333'],
+    [/rgb\(254,\s*242,\s*242\)/,   '#7F1D1D'],
+    [/rgb\(240,\s*253,\s*244\)/,   '#1B4332'],
+  ];
+  cloneDoc.querySelectorAll('*').forEach(el => {
+    const cs = getComputedStyle(el);
+    const bg = cs.backgroundColor;
+    if (!bg || bg === 'transparent' || bg === 'rgba(0, 0, 0, 0)') return;
+    for (const [re, dark] of BG_MAP) {
+      if (re.test(bg)) {
+        el.style.setProperty('background', dark, 'important');
+        el.style.setProperty('background-color', dark, 'important');
+        // fix chữ tối trên nền tối
+        const color = cs.color;
+        if (/rgb\((?:26|27|30|33|49|97|98)\s*,/.test(color)) {
+          el.style.setProperty('color', '#ddd', 'important');
+        }
+        break;
+      }
+    }
+  });
+  // Đảm bảo body/html tối
+  cloneDoc.documentElement.style.setProperty('background', '#1a1a1a', 'important');
+  cloneDoc.body.style.setProperty('background', '#1a1a1a', 'important');
+}
+
+async function captureBeginReport(){
+  const statRow = document.getElementById('begin-stats');
+  const tbl = document.getElementById('tbl-outer');
+  const chartSec = document.getElementById('chart-sec');
+  if(!tbl || tbl.style.display==='none'){ toast('❌ Chưa có dữ liệu Begin Day!'); return; }
+  const btn = document.getElementById('btn-capture-begin');
+  if(btn){ btn.innerHTML='⏳ Đang chụp...'; btn.disabled=true; btn.style.visibility='hidden'; }
+  try{
+    const tw = tbl.querySelector('.table-wrap');
+    const savedMH = tw ? tw.style.maxHeight : null;
+    const savedOY = tw ? tw.style.overflowY : null;
+    if(tw){ tw.style.maxHeight='none'; tw.style.overflowY='visible'; }
+
+    const elems = [];
+    if(statRow && statRow.offsetParent !== null && statRow.offsetHeight > 0) elems.push(statRow);
+    elems.push(tbl);
+    if(chartSec && chartSec.style.display!=='none' && chartSec.offsetHeight > 0) elems.push(chartSec);
+
+    const BG = '#1a1a1a';
+    const opts = (el) => ({
+      scale:2, useCORS:true, backgroundColor:BG, logging:false,
+      width:el.scrollWidth||el.offsetWidth, height:el.scrollHeight||el.offsetHeight,
+      windowWidth:document.body.scrollWidth, windowHeight:document.body.scrollHeight,
+      onclone: (cloneDoc) => _darkifyClone(cloneDoc)
+    });
+
+    const canvases = [];
+    for(const el of elems){
+      const raw = await html2canvas(el, opts(el));
+      if(raw.width > 0 && raw.height > 0){
+        const c = document.createElement('canvas');
+        c.width = raw.width; c.height = raw.height;
+        const cx = c.getContext('2d');
+        cx.fillStyle = BG; cx.fillRect(0,0,c.width,c.height);
+        cx.drawImage(raw,0,0);
+        canvases.push(c);
+      }
+    }
+
+    if(tw){ tw.style.maxHeight=savedMH; tw.style.overflowY=savedOY; }
+    if(canvases.length === 0){ toast('❌ Không chụp được!'); if(btn){ btn.innerHTML='📸 Chụp báo cáo'; btn.disabled=false; btn.style.visibility=''; } return; }
+
+    const gap = 8;
+    const totalW = Math.max(...canvases.map(c=>c.width));
+    const totalH = canvases.reduce((s,c)=>s+c.height, 0) + gap*(canvases.length-1);
+    const merged = document.createElement('canvas');
+    merged.width=totalW; merged.height=totalH;
+    const ctx = merged.getContext('2d');
+    ctx.fillStyle=BG; ctx.fillRect(0,0,totalW,totalH);
+    let y=0;
+    canvases.forEach(c=>{ ctx.drawImage(c,0,y); y+=c.height+gap; });
+
+    merged.toBlob(async blob=>{
+      try{ await navigator.clipboard.write([new ClipboardItem({'image/png':blob})]); toast('✅ Đã copy ảnh Begin! Paste vào Zalo nhé 📸'); }
+      catch(e){ const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=`Begin_Day_${todayVN()}.png`; a.click(); URL.revokeObjectURL(url); toast('📥 Đã tải ảnh Begin!'); }
+      if(btn){ btn.innerHTML='📸 Chụp báo cáo'; btn.disabled=false; btn.style.visibility=''; }
+    },'image/png');
+  }catch(err){ console.error(err); toast('❌ Lỗi: '+err.message); if(btn){ btn.innerHTML='📸 Chụp báo cáo'; btn.disabled=false; btn.style.visibility=''; } }
+}
+
+async function captureEndReport(){
+  const statBar = document.getElementById('end-stats');
+  const tbl1 = document.getElementById('ed-deliver-wrap');
+  const tbl2 = document.getElementById('pickup-wrap');
+  if(!tbl1 || tbl1.style.display==='none'){ toast('❌ Chưa có dữ liệu End Day!'); return; }
+  const btn = document.getElementById('btn-capture-end');
+  if(btn){ btn.innerHTML='⏳ Đang chụp...'; btn.disabled=true; btn.style.visibility='hidden'; }
+  try{
+    const BG = '#1a1a1a';
+    const opts = (el) => ({
+      scale:2, useCORS:true, backgroundColor:BG, logging:false,
+      width:el.scrollWidth||el.offsetWidth, height:el.scrollHeight||el.offsetHeight,
+      windowWidth:document.body.scrollWidth, windowHeight:document.body.scrollHeight,
+      onclone: (cloneDoc) => _darkifyClone(cloneDoc)
+    });
+
+    const tables = [tbl1, tbl2].filter(e=>e && e.style.display!=='none' && e.offsetHeight > 0);
+    const saved = tables.map(el=>{ const tw=el.querySelector('.table-wrap'); if(!tw) return null; const s={mh:tw.style.maxHeight,oy:tw.style.overflowY}; tw.style.maxHeight='none'; tw.style.overflowY='visible'; return {tw,s}; });
+
+    const elems = [];
+    if(statBar && statBar.style.display!=='none' && statBar.offsetHeight > 0) elems.push(statBar);
+    elems.push(...tables);
+
+    const canvases = [];
+    for(const el of elems){
+      const raw = await html2canvas(el, opts(el));
+      if(raw.width > 0 && raw.height > 0){
+        const c = document.createElement('canvas');
+        c.width = raw.width; c.height = raw.height;
+        const cx = c.getContext('2d');
+        cx.fillStyle = BG; cx.fillRect(0,0,c.width,c.height);
+        cx.drawImage(raw,0,0);
+        canvases.push(c);
+      }
+    }
+
+    saved.forEach(item=>{ if(item){ item.tw.style.maxHeight=item.s.mh; item.tw.style.overflowY=item.s.oy; } });
+    if(canvases.length === 0){ toast('❌ Không chụp được!'); if(btn){ btn.innerHTML='📸 Chụp báo cáo'; btn.disabled=false; btn.style.visibility=''; } return; }
+
+    const gap = 8;
+    const totalW = Math.max(...canvases.map(c=>c.width));
+    const totalH = canvases.reduce((s,c)=>s+c.height, 0) + gap*(canvases.length-1);
+    const merged = document.createElement('canvas');
+    merged.width=totalW; merged.height=totalH;
+    const ctx = merged.getContext('2d');
+    ctx.fillStyle=BG; ctx.fillRect(0,0,totalW,totalH);
+    let y=0;
+    canvases.forEach(c=>{ ctx.drawImage(c,0,y); y+=c.height+gap; });
+
+    merged.toBlob(async blob=>{
+      try{ await navigator.clipboard.write([new ClipboardItem({'image/png':blob})]); toast('✅ Đã copy ảnh End Day! Paste vào Zalo nhé 📸'); }
+      catch(e){ const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=`End_Day_${todayVN()}.png`; a.click(); URL.revokeObjectURL(url); toast('📥 Đã tải ảnh End Day!'); }
+      if(btn){ btn.innerHTML='📸 Chụp báo cáo'; btn.disabled=false; btn.style.visibility=''; }
+    },'image/png');
+  }catch(err){ console.error(err); toast('❌ Lỗi: '+err.message); if(btn){ btn.innerHTML='📸 Chụp báo cáo'; btn.disabled=false; btn.style.visibility=''; } }
+}
+
+function togglePanel(panelId, btnId){
+  const panel = document.getElementById(panelId);
+  const btn = document.getElementById(btnId);
+  if(!panel) return;
+  const body = panel.querySelectorAll(':scope > *:not(:first-child)');
+  const isOpen = btn.textContent.trim() === '▲';
+  body.forEach(el => el.style.display = isOpen ? 'none' : '');
+  btn.textContent = isOpen ? '▼' : '▲';
+}
+</script>
+</body>
+</html>
